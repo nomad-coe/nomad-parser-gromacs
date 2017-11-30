@@ -1,0 +1,22 @@
+# Walkthrough for NOMAD lab-base installation
+- Install Python (preferred version 3 but 2.7 is OK for now)
+- Install pip by downloading [get-pip.py](https://bootstrap.pypa.io/get-pip.py) file and running "python get-pip.py"
+- Install virtual environment with pip install virtualenv
+- Install Scala and sbt. You may want to check [download webpage of Scala](https://www.scala-lang.org/download/)
+- Install HDF5 java libraries using get-CMAKE-HDF5-and-Build-for-NOMAD.sh in hdf5 directory to have a source-compiled cmake distribution for your local user. You can use hdf5/getAndBuild.sh which is the default installation for NOMAD.
+- Let's say we have /home/shared folder and we want to work within this directory for all NOMAD repository purposes and runtime scratch/work. For example, nomad-lab-base stays at /home/shared/nomad-lab-base path in this configuration.
+- If you did not clone your nomad-lab-base yet, it is a good time to do. Go inside /home/shared and run git clone --recursive git@gitlab.mpcdf.mpg.de:nomad-lab/nomad-lab-base.git
+- NOMAD needs several directories to be exist on your system. Unfortunately, some of these directories are at root path / on the system. This makes it difficult to work with user only privileges in a HPC cluster. Don't worry for now, we will figure out how to eliminate this problem.
+- The following directories are mandatory for testing parsers: /work-local ,  /labEnv (and/or /labEnv3) 
+- NOMAD infrastructure needs to work in a python virtual environment. Therefore we need to generate one by running 'virtualenv /home/shared/labEnv3' command. 
+- You may encounter with the following error messages "ERROR: It thinks sys.prefix is u'/usr' ... should be ... ERROR: virtualenv is not compatible with this system or executable" while creating the virtual environment directory. To circumvent this problem try running virtualenv with -p option and give the full path of python explicitly such as 'virtualenv -p /home/shared/python/bin/python2.7 /home/shared/labEnv3' . Please note that the python in the full path is the exact python program not a symbolic link. 
+- To activate the python environment simply issue "source /home/shared/labEnv3/bin/activate".
+- Now, you should see that your shell prompt starts with (labEnv3).
+- Install required python packages in your brand new python virtual environment. These are written at requirements.txt file in python-common directory. You can also check the commands that are listed in nomad-lab-base/utils/updatePython.sh . 
+- As it is listed in updatePython.sh script, you can issue "cd nomad-lab-base/3rd-party/phonopy", "python setup.py build" and "python setup.py install" commands in their order here to install phonopy interface if you would like to use phonopy parsers. Skipping this installation will cause phonopy parsers to fail in the NOMAD tests.
+- How to eliminate /work-local and /labEnv3 dependencies: Use docker program (virtualization) to run all your infrastructure! Ask your HPC to install docker to your system.
+- Following Setup.markdown file in nomad-lab-base, we can build Scala project for NOMAD and test parsers. This will go as follows:
+- run "sbt" inside python virtual environment. This step can take some time to load Scala environment.
+- run "compile" . This step also takes time as it compiles core packages and parsers. 
+- run "test" to test all parsers. If the installation is OK, you should see that most of the tests say 'Passed' along with its check by ScalaCheck function.
+- If you have failed tests that display the following error "AccessDeniedException: : /work-local" please go back to where we eliminate NOMAD path issues.
