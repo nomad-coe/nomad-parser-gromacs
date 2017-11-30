@@ -1,0 +1,146 @@
+-s [<.tpr/.tpb/...>] (topol.tpr) (Input)
+Run input file: tpr tpb tpa
+-o [<.trr/.cpt/...>] (traj.trr) (Output)
+Full precision trajectory: trr cpt trj tng
+-x [<.xtc/.tng>] (traj_comp.xtc) (Output, Optional)
+Compressed trajectory (tng format or portable xdr format)
+-cpi [<.cpt>] (state.cpt) (Input, Optional)
+Checkpoint file
+-cpo [<.cpt>] (state.cpt) (Output, Optional)
+Checkpoint file
+-c [<.gro/.g96/...>] (confout.gro) (Output)
+Structure file: gro g96 pdb brk ent esp
+-e [<.edr>] (ener.edr) (Output)
+Energy file
+-g [<.log>] (md.log) (Output)
+Log file
+-dhdl [<.xvg>] (dhdl.xvg) (Output, Optional)
+xvgr/xmgr file
+-field [<.xvg>] (field.xvg) (Output, Optional)
+xvgr/xmgr file
+-table [<.xvg>] (table.xvg) (Input, Optional)
+xvgr/xmgr file
+-tabletf [<.xvg>] (tabletf.xvg) (Input, Optional)
+xvgr/xmgr file
+-tablep [<.xvg>] (tablep.xvg) (Input, Optional)
+xvgr/xmgr file
+-tableb [<.xvg>] (table.xvg) (Input, Optional)
+xvgr/xmgr file
+-rerun [<.xtc/.trr/...>] (rerun.xtc) (Input, Optional)
+Trajectory: xtc trr cpt trj gro g96 pdb tng
+-tpi [<.xvg>] (tpi.xvg) (Output, Optional)
+xvgr/xmgr file
+-tpid [<.xvg>] (tpidist.xvg) (Output, Optional)
+xvgr/xmgr file
+-ei [<.edi>] (sam.edi) (Input, Optional)
+ED sampling input
+-eo [<.xvg>] (edsam.xvg) (Output, Optional)
+xvgr/xmgr file
+-devout [<.xvg>] (deviatie.xvg) (Output, Optional)
+xvgr/xmgr file
+-runav [<.xvg>] (runaver.xvg) (Output, Optional)
+xvgr/xmgr file
+-px [<.xvg>] (pullx.xvg) (Output, Optional)
+xvgr/xmgr file
+-pf [<.xvg>] (pullf.xvg) (Output, Optional)
+xvgr/xmgr file
+-ro [<.xvg>] (rotation.xvg) (Output, Optional)
+xvgr/xmgr file
+-ra [<.log>] (rotangles.log) (Output, Optional)
+Log file
+-rs [<.log>] (rotslabs.log) (Output, Optional)
+Log file
+-rt [<.log>] (rottorque.log) (Output, Optional)
+Log file
+-mtx [<.mtx>] (nm.mtx) (Output, Optional)
+Hessian matrix
+-dn [<.ndx>] (dipole.ndx) (Output, Optional)
+Index file
+-multidir [<dir> [...]] (rundir) (Input, Optional)
+Run directory
+-membed [<.dat>] (membed.dat) (Input, Optional)
+Generic data file
+-mp [<.top>] (membed.top) (Input, Optional)
+Topology file
+-mn [<.ndx>] (membed.ndx) (Input, Optional)
+Index file
+-if [<.xvg>] (imdforces.xvg) (Output, Optional)
+xvgr/xmgr file
+-swap [<.xvg>] (swapions.xvg) (Output, Optional)
+xvgr/xmgr file
+-nice <int> (0)
+Set the nicelevel
+-deffnm <string>
+Set the default filename for all file options
+-xvg <enum> (xmgrace)
+xvg plot formatting: xmgrace, xmgr, none
+-dd <vector> (0 0 0)
+Domain decomposition grid, 0 is optimize
+-ddorder <enum> (interleave)
+DD rank order: interleave, pp_pme, cartesian
+-npme <int> (-1)
+Number of separate ranks to be used for PME, -1 is guess
+-nt <int> (0)
+Total number of threads to start (0 is guess)
+-ntmpi <int> (0)
+Number of thread-MPI threads to start (0 is guess)
+-ntomp <int> (0)
+Number of OpenMP threads per MPI rank to start (0 is guess)
+-ntomp_pme <int> (0)
+Number of OpenMP threads per MPI rank to start (0 is -ntomp)
+-pin <enum> (auto)
+Set thread affinities: auto, on, off
+-pinoffset <int> (0)
+The starting logical core number for pinning to cores; used to avoid pinning threads from different mdrun instances to the same core
+-pinstride <int> (0)
+Pinning distance in logical cores for threads, use 0 to minimize the number of threads per physical core
+-gpu_id <string>
+List of GPU device id-s to use, specifies the per-node PP rank to GPU mapping
+-[no]ddcheck (yes)
+Check for all bonded interactions with DD
+-rdd <real> (0)
+The maximum distance for bonded interactions with DD (nm), 0 is determine from initial coordinates
+-rcon <real> (0)
+Maximum distance for P-LINCS (nm), 0 is estimate
+-dlb <enum> (auto)
+Dynamic load balancing (with DD): auto, no, yes
+-dds <real> (0.8)
+Fraction in (0,1) by whose reciprocal the initial DD cell size will be increased in order to provide a margin in which dynamic load balancing can act while preserving the minimum cell size.
+-gcom <int> (-1)
+Global communication frequency
+-nb <enum> (auto)
+Calculate non-bonded interactions on: auto, cpu, gpu, gpu_cpu
+-nstlist <int> (0)
+Set nstlist when using a Verlet buffer tolerance (0 is guess)
+-[no]tunepme (yes)
+Optimize PME load between PP/PME ranks or GPU/CPU
+-[no]testverlet (no)
+Test the Verlet non-bonded scheme
+-[no]v (no)
+Be loud and noisy
+-[no]compact (yes)
+Write a compact log file
+-[no]seppot (no)
+Write separate V and dVdl terms for each interaction type and rank to the log file(s)
+-pforce <real> (-1)
+Print all forces larger than this (kJ/mol nm)
+-[no]reprod (no)
+Try to avoid optimizations that affect binary reproducibility
+-cpt <real> (15)
+Checkpoint interval (minutes)
+-[no]cpnum (no)
+Keep and number checkpoint files
+-[no]append (yes)
+Append to previous output files when continuing from checkpoint instead of adding the simulation part number to all file names
+-nsteps <int> (-2)
+Run this number of steps, overrides .mdp file option
+-maxh <real> (-1)
+Terminate after 0.99 times this time (hours)
+-multi <int> (0)
+Do multiple simulations in parallel
+-replex <int> (0)
+Attempt replica exchange periodically with this period (steps)
+-nex <int> (0)
+Number of random exchanges to carry out each exchange interval (N^3 is one suggestion). -nex zero or not specified gives neighbor replica exchange.
+-reseed <int> (-1)
+Seed for replica exchange, -1 is generate a seed
