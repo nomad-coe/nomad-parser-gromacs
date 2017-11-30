@@ -830,7 +830,7 @@ def get_updateDictionary(self, defname):
     # ------------------------------------------------------------
     singleconfcalc = { 
         #'atom_forces_type' : MetaInfoMap(startpage,
-        #    depends=[{'assign' : 'Amber Force Field'}],
+        #    depends=[{'assign' : 'Force Field'}],
         #    lookupdict=self.mddataDict
         #    ),
         'energy_correction_entropy' : MetaInfoMap(startpage),
@@ -1378,7 +1378,7 @@ def get_updateDictionary(self, defname):
             valtype='int',
             ),
         'topology_force_field_name' : MetaInfoMap(startpage,
-            value='AMBER Force Field',
+            value='GROMACS Force Field',
             )
         }
 
