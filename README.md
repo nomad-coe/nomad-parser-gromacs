@@ -18,18 +18,18 @@ The simplest way to have this is to check out nomad-lab-base recursively:
 
 This parser will be in the directory parsers/gromacs of this repository.
 
-# Running and Testing the Parser
-## Requirements
+## Running and Testing the Parser
+### Requirements
 The required python packages can be installed with (see [python-common](https://gitlab.rzg.mpg.de/nomad-lab/python-common)):
 
     pip install -r nomad-lab-base/python-common/requirements.txt
 
-## Usage
+### Usage
 GROMACS gmx mdrun log output files can be parsed with:
 
     python GromacsParser.py [path/toFile]
 
-## Test Files
+### Test Files
 Example log output files of GROMACS gmx can be found in the directory test/examples.
 More details about the calculations and files will be explained in this README file.
 
