@@ -1334,13 +1334,13 @@ def get_updateDictionary(self, defname):
                     )
                 )
             ),
-        'x_gromacs_number_of_constrain_rmsd_energies_in_sequence' : MetaInfoMap(startpage,
+        'x_gromacs_number_of_constrain_rmsd_in_sequence' : MetaInfoMap(startpage,
             activeInfo=True,
             activeSections=['section_frame_sequence'],
             value=(lambda x: np.array(x['val']).flatten().shape[0] if(
                 x is not None and x['val'] is not None) else None)(
                 self.metaStorage.fetchAttrValue(
-                    'x_gromacs_frame_sequence_constrain_rmsd_energy_frames'
+                    'x_gromacs_frame_sequence_constrain_rmsd_frames'
                     )
                 )
             ),
