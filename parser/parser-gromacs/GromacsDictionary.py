@@ -876,24 +876,24 @@ def get_updateDictionary(self, defname):
         'time_single_configuration_calculation_wall_end' : MetaInfoMap(startpage),
         'time_single_configuration_calculation_wall_start' : MetaInfoMap(startpage),
 #        'stress_tensor_kind' : MetaInfoMap(startpage),
-        'stress_tensor_kind' : MetaInfoMap(startpage,
-            depends=[
-                {'test' : [['integrator', '== \"steep\"']],
-                 'assign' : 'geometry_optimization'},
-                {'test' : [['integrator', '== \"cg\"']],
-                 'assign' : 'geometry_optimization'},
-                {'test' : [['integrator', '== \"l-bfgs\"']], 
-                 'assign' : 'geometry_optimization'},
-                {'test' : [['integrator', '== \"md\"']],
-                 'assign' : 'molecular_dynamics'},
-                {'test' : [['integrator', '== \"md-vv\"']],
-                 'assign' : 'molecular_dynamics'},
-                {'test' : [['integrator', '== \"md-vv-avek\"']], 
-                 'assign' : 'molecular_dynamics'}
-                ],
-            activeInfo=True,
-            lookupdict=self.cntrlDict
-            ),
+#        'stress_tensor_kind' : MetaInfoMap(startpage,
+#            depends=[
+#                {'test' : [['integrator', '== \"steep\"']],
+#                 'assign' : 'geometry_optimization'},
+#                {'test' : [['integrator', '== \"cg\"']],
+#                 'assign' : 'geometry_optimization'},
+#                {'test' : [['integrator', '== \"l-bfgs\"']], 
+#                 'assign' : 'geometry_optimization'},
+#                {'test' : [['integrator', '== \"md\"']],
+#                 'assign' : 'molecular_dynamics'},
+#                {'test' : [['integrator', '== \"md-vv\"']],
+#                 'assign' : 'molecular_dynamics'},
+#                {'test' : [['integrator', '== \"md-vv-avek\"']], 
+#                 'assign' : 'molecular_dynamics'}
+#                ],
+#            activeInfo=True,
+#            lookupdict=self.cntrlDict
+#            ),
         'stress_tensor_value' : MetaInfoMap(startpage)
         }
 
