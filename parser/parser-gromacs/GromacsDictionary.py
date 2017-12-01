@@ -1264,6 +1264,86 @@ def get_updateDictionary(self, defname):
                     )
                 )
             ),
+        'x_gromacs_number_of_coulomb_sr_energies_in_sequence' : MetaInfoMap(startpage,
+            activeInfo=True,
+            activeSections=['section_frame_sequence'],
+            value=(lambda x: np.array(x['val']).flatten().shape[0] if(
+                x is not None and x['val'] is not None) else None)(
+                self.metaStorage.fetchAttrValue(
+                    'x_gromacs_frame_sequence_coulomb_sr_energy_frames'
+                    )
+                )
+            ),
+        'x_gromacs_number_of_coulomb_14_energies_in_sequence' : MetaInfoMap(startpage,
+            activeInfo=True,
+            activeSections=['section_frame_sequence'],
+            value=(lambda x: np.array(x['val']).flatten().shape[0] if(
+                x is not None and x['val'] is not None) else None)(
+                self.metaStorage.fetchAttrValue(
+                    'x_gromacs_frame_sequence_coulomb_14_energy_frames'
+                    )
+                )
+            ),
+        'x_gromacs_number_of_lj_14_energies_in_sequence' : MetaInfoMap(startpage,
+            activeInfo=True,
+            activeSections=['section_frame_sequence'],
+            value=(lambda x: np.array(x['val']).flatten().shape[0] if(
+                x is not None and x['val'] is not None) else None)(
+                self.metaStorage.fetchAttrValue(
+                    'x_gromacs_frame_sequence_lj_14_energy_frames'
+                    )
+                )
+            ),
+        'x_gromacs_number_of_lj_sr_energies_in_sequence' : MetaInfoMap(startpage,
+            activeInfo=True,
+            activeSections=['section_frame_sequence'],
+            value=(lambda x: np.array(x['val']).flatten().shape[0] if(
+                x is not None and x['val'] is not None) else None)(
+                self.metaStorage.fetchAttrValue(
+                    'x_gromacs_frame_sequence_lj_sr_energy_frames'
+                    )
+                )
+            ),
+        'x_gromacs_number_of_proper_dihedral_energies_in_sequence' : MetaInfoMap(startpage,
+            activeInfo=True,
+            activeSections=['section_frame_sequence'],
+            value=(lambda x: np.array(x['val']).flatten().shape[0] if(
+                x is not None and x['val'] is not None) else None)(
+                self.metaStorage.fetchAttrValue(
+                    'x_gromacs_frame_sequence_proper_dihedral_energy_frames'
+                    )
+                )
+            ),
+        'x_gromacs_number_of_improper_dihedral_energies_in_sequence' : MetaInfoMap(startpage,
+            activeInfo=True,
+            activeSections=['section_frame_sequence'],
+            value=(lambda x: np.array(x['val']).flatten().shape[0] if(
+                x is not None and x['val'] is not None) else None)(
+                self.metaStorage.fetchAttrValue(
+                    'x_gromacs_frame_sequence_improper_dihedral_energy_frames'
+                    )
+                )
+            ),
+        'x_gromacs_number_of_cmap_dihedral_energies_in_sequence' : MetaInfoMap(startpage,
+            activeInfo=True,
+            activeSections=['section_frame_sequence'],
+            value=(lambda x: np.array(x['val']).flatten().shape[0] if(
+                x is not None and x['val'] is not None) else None)(
+                self.metaStorage.fetchAttrValue(
+                    'x_gromacs_frame_sequence_cmap_dihedral_energy_frames'
+                    )
+                )
+            ),
+        'x_gromacs_number_of_constrain_rmsd_energies_in_sequence' : MetaInfoMap(startpage,
+            activeInfo=True,
+            activeSections=['section_frame_sequence'],
+            value=(lambda x: np.array(x['val']).flatten().shape[0] if(
+                x is not None and x['val'] is not None) else None)(
+                self.metaStorage.fetchAttrValue(
+                    'x_gromacs_frame_sequence_constrain_rmsd_energy_frames'
+                    )
+                )
+            ),
         #'previous_sequence_ref' : MetaInfoMap(startpage)
         }
 
@@ -1378,7 +1458,7 @@ def get_updateDictionary(self, defname):
             valtype='int',
             ),
         'topology_force_field_name' : MetaInfoMap(startpage,
-            value='GROMACS Force Field',
+            value='Force Field',
             )
         }
 
