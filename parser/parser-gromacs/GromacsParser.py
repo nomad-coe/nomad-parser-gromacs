@@ -875,17 +875,26 @@ class GromacsParser(SmartParser.ParserBase):
                            )
                        ),
                     SM(name='module_version', 
-                       startReStr=r"\s*GROMACS:\s*(?P<"+PARSERTAG+"_program_module_version>"
+                       startReStr=r"\s*GROMACS:\s*(?P<"+PARSERTAG+"_mdin_finline>"
                                    "[a-zA-Z0-9,.]+[\s][a-zA-Z0-9,.]+[\s][a-zA-Z0-9,.]+[\s]"
-                                   "[a-zA-Z0-9,.]+[\s]?[a-zA-Z0-9,.]+[\s])\s*"),
+                                   "[a-zA-Z0-9,.]+[\s]?[a-zA-Z0-9,.]+[\s])\s*",
+                       adHoc=lambda p: p.backend.addValue( 
+                           PARSERTAG+"_program_module_version", p.lastMatch[
+                               PARSERTAG+"_mdin_finline"].replace("\n",""))),
                     SM(name='executable_path', 
                        startReStr=r"\s*Executable:\s*"
-                                   "(?P<"+PARSERTAG+"_program_execution_path>"
-                                   "[a-zA-Z0-9/._\s]+)\s*"),
+                                   "(?P<"+PARSERTAG+"_mdin_finline>"
+                                   "[a-zA-Z0-9/._\s]+)\s*",
+                       adHoc=lambda p: p.backend.addValue( 
+                           PARSERTAG+"_program_execution_path", p.lastMatch[
+                               PARSERTAG+"_mdin_finline"].replace("\n",""))),
                     SM(name='working_path', 
                        startReStr=r"\s*Data\s*prefix:\s*"
-                                   "(?P<"+PARSERTAG+"_program_working_path>"
-                                   "[a-zA-Z0-9/._\s]+)\s*"),
+                                   "(?P<"+PARSERTAG+"_mdin_finline>"
+                                   "[a-zA-Z0-9/._\s]+)\s*",
+                       adHoc=lambda p: p.backend.addValue( 
+                           PARSERTAG+"_program_working_path", p.lastMatch[
+                               PARSERTAG+"_mdin_finline"].replace("\n",""))),
                     SM(name='FileNameMatch',
                        startReStr=r"\s*Command\s*line:",
                        forwardMatch=True,

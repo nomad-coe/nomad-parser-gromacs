@@ -50,7 +50,7 @@ def get_fileListDict():
         }
     return MapDictionary(namelist)
 
-def get_nameListDict(deflist):
+def get_nameListDict(self, deflist):
     """Loads control in data of GROMACS.
 
     Args:
@@ -197,12 +197,30 @@ def get_nameListDict(deflist):
         'pcoupltype'         : MetaInfoMap(startpage, defaultValue=0), 
         'nstpcouple'         : MetaInfoMap(startpage, defaultValue=0), 
         'tau-p'              : MetaInfoMap(startpage, defaultValue=0), 
-        'compressibility\[    0\]' : MetaInfoMap(startpage, defaultValue=0), 
-        'compressibility\[    1\]' : MetaInfoMap(startpage, defaultValue=0), 
-        'compressibility\[    2\]' : MetaInfoMap(startpage, defaultValue=0), 
-        'ref-p\[    0\]'       : MetaInfoMap(startpage, defaultValue=0), 
-        'ref-p\[    1\]'       : MetaInfoMap(startpage, defaultValue=0), 
-        'ref-p\[    2\]'       : MetaInfoMap(startpage, defaultValue=0), 
+        'compressibility\[    0\]' : MetaInfoMap(startpage, defaultValue=0,
+                replaceDict = {'{' : '[', '}' : ']'}, 
+                subFunc=lambda x: np.asarray(
+                    self.literal_eval(x)) if x is not None else None), 
+        'compressibility\[    1\]' : MetaInfoMap(startpage, defaultValue=0, 
+                replaceDict = {'{' : '[', '}' : ']'}, 
+                subFunc=lambda x: np.asarray(
+                    self.literal_eval(x)) if x is not None else None), 
+        'compressibility\[    2\]' : MetaInfoMap(startpage, defaultValue=0, 
+                replaceDict = {'{' : '[', '}' : ']'}, 
+                subFunc=lambda x: np.asarray(
+                    self.literal_eval(x)) if x is not None else None), 
+        'ref-p\[    0\]'       : MetaInfoMap(startpage, defaultValue=0, 
+                replaceDict = {'{' : '[', '}' : ']'}, 
+                subFunc=lambda x: np.asarray(
+                    self.literal_eval(x)) if x is not None else None), 
+        'ref-p\[    1\]'       : MetaInfoMap(startpage, defaultValue=0, 
+                replaceDict = {'{' : '[', '}' : ']'}, 
+                subFunc=lambda x: np.asarray(
+                    self.literal_eval(x)) if x is not None else None), 
+        'ref-p\[    2\]'       : MetaInfoMap(startpage, defaultValue=0, 
+                replaceDict = {'{' : '[', '}' : ']'}, 
+                subFunc=lambda x: np.asarray(
+                    self.literal_eval(x)) if x is not None else None), 
         'refcoord-scaling'   : MetaInfoMap(startpage, defaultValue=0), 
         'posres-com\[0\]'      : MetaInfoMap(startpage, defaultValue=0), 
         'posres-com\[1\]'      : MetaInfoMap(startpage, defaultValue=0), 
@@ -247,9 +265,18 @@ def get_nameListDict(deflist):
         'nstorireout' : MetaInfoMap(startpage, defaultValue=0), 
         'free-energy' : MetaInfoMap(startpage, defaultValue=0), 
         'cos-acceleration' : MetaInfoMap(startpage, defaultValue=0), 
-        'deform\[    0\]' : MetaInfoMap(startpage, defaultValue=0), 
-        'deform\[    1\]' : MetaInfoMap(startpage, defaultValue=0), 
-        'deform\[    2\]' : MetaInfoMap(startpage, defaultValue=0), 
+        'deform\[    0\]' : MetaInfoMap(startpage, defaultValue=0, 
+                replaceDict = {'{' : '[', '}' : ']'}, 
+                subFunc=lambda x: np.asarray(
+                    self.literal_eval(x)) if x is not None else None), 
+        'deform\[    1\]' : MetaInfoMap(startpage, defaultValue=0, 
+                replaceDict = {'{' : '[', '}' : ']'}, 
+                subFunc=lambda x: np.asarray(
+                    self.literal_eval(x)) if x is not None else None), 
+        'deform\[    2\]' : MetaInfoMap(startpage, defaultValue=0, 
+                replaceDict = {'{' : '[', '}' : ']'}, 
+                subFunc=lambda x: np.asarray(
+                    self.literal_eval(x)) if x is not None else None), 
         'simulated-tempering' : MetaInfoMap(startpage, defaultValue=0), 
         'E-x' : MetaInfoMap(startpage, defaultValue=0, nextMatch='n', concatMatch=True), 
         'E-xt' : MetaInfoMap(startpage, defaultValue=0, nextMatch='n', concatMatch=True), 
@@ -278,8 +305,12 @@ def get_nameListDict(deflist):
     anneallist = {
         'annealing' : MetaInfoMap(startpage, defaultValue=0), 
         'annealing-npoints' : MetaInfoMap(startpage, defaultValue=0), 
-        'acc' : MetaInfoMap(startpage, defaultValue=0), 
-        'nfreeze' : MetaInfoMap(startpage, defaultValue=0), 
+        'acc' : MetaInfoMap(startpage, defaultValue=0, 
+            subFunc=lambda x: [float(i) for i in x.split()] if(x is not None and 
+                isinstance(x,str) is True) else None), 
+        'nfreeze' : MetaInfoMap(startpage, defaultValue=0, 
+            subFunc=lambda x: x.split() if(x is not None and 
+                isinstance(x,str) is True) else None), 
         'energygrp-flags\[  0\]' : MetaInfoMap(startpage, defaultValue=0), 
         'energygrp-flags\[  1\]' : MetaInfoMap(startpage, defaultValue=0), 
         'energygrp-flags\[  2\]' : MetaInfoMap(startpage, defaultValue=0), 
@@ -441,15 +472,15 @@ def get_nameListDict(deflist):
 def set_Dictionaries(self):
         self.unitDict = get_unitDict('si')
         self.fileDict = get_fileListDict()
-        self.cntrlDict = get_nameListDict('cntrl')
-        self.archDict = get_nameListDict('arch')
-        self.qmDict = get_nameListDict('qm')
-        self.grpDict = get_nameListDict('grp')
-        self.edrDict = get_nameListDict('edrdata')
-        self.annealDict = get_nameListDict('anneal')
-        self.parmDict = get_nameListDict('parm')
-        self.mddataDict = get_nameListDict('mddata')
-        self.extraDict = get_nameListDict('extra')
+        self.cntrlDict = get_nameListDict(self, 'cntrl')
+        self.archDict = get_nameListDict(self, 'arch')
+        self.qmDict = get_nameListDict(self, 'qm')
+        self.grpDict = get_nameListDict(self, 'grp')
+        self.edrDict = get_nameListDict(self, 'edrdata')
+        self.annealDict = get_nameListDict(self, 'anneal')
+        self.parmDict = get_nameListDict(self, 'parm')
+        self.mddataDict = get_nameListDict(self, 'mddata')
+        self.extraDict = get_nameListDict(self, 'extra')
         #self.stepcontrolDict = get_nameListDict('stepcontrol')
         self.stepcontrolDict = {
             'logsteps'       : None,
@@ -634,13 +665,12 @@ def get_updateDictionary(self, defname):
                            ['pcoupl', 'not in [\"no\",\"No\",\"NO\"]']], 
                  'value' : 'ref-p\[    0\]'} 
                 ],
-            #value=(lambda x: np.linalg.norm(np.asarray(x)) if(
-            #    x is not None and isinstance(x, str)) else None)(
-            #    self.metaStorage.currentValue
-            #    ),
-            #subfunction={ 
-            #    'function' : value_convert_array_norm,
-            #    },
+            value=(lambda x: np.array(x['val']).flatten().shape[0] if(
+                x is not None and x['val'] is not None) else None)(
+                self.metaStorage.fetchAttrValue(
+                    'x_gromacs_inout_control_refp0'
+                    )
+                ),
             lookupdict=self.cntrlDict,
             valtype='float',
             unitdict=self.unitDict,
