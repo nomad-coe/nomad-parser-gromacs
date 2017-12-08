@@ -1,6 +1,6 @@
 # GROMACS Parser
 [NOMAD Laboratory CoE](http://nomad-coe.eu) parser for [GROMACS](http://www.gromacs.org/)
-## Version 0.0.1
+## Version 0.0.2
 
 This is the parser for GROMACS gmx Molecular Dynamics (mdrun) in [GROMACS](http://www.gromacs.org).
 The official version lives at:
