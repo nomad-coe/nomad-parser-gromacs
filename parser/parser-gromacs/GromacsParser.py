@@ -6,7 +6,8 @@ import numpy as np
 import nomadcore.ActivateLogging
 from nomadcore.caching_backend import CachingLevel
 from nomadcore.simple_parser import SimpleMatcher as SM
-import nomadcore.smart_parser.SmartParserCommon as SmartParser
+#import nomadcore.smart_parser.SmartParserCommon as SmartParser
+from nomadcore.smart_parser import SmartParserCommon as SmartParser
 from nomadcore.smart_parser.SmartParserCommon import get_metaInfo, conv_str, conv_int, conv_float, open_section
 from nomadcore.smart_parser.SmartParserDictionary import getList_MetaStrInDict, getDict_MetaStrInDict
 from nomadcore.smart_parser.SmartParserDictionary import isMetaStrInDict
@@ -15,7 +16,8 @@ from GromacsCmdLineArgs import get_commandLineArguments
 from GromacsCommon import PARSERNAME, PROGRAMNAME, PARSERVERSION, PARSERTAG, LOGGER
 from GromacsCommon import PARSER_INFO_DEFAULT, META_INFO_PATH, set_excludeList, set_includeList
 from GromacsCmdLineArgs import get_commandLineArguments
-import nomadcore.md_data_access.MDDataAccess as MDDA
+#import nomadcore.md_data_access.MDDataAccess as MDDA
+from nomadcore.md_data_access import MDDataAccess as MDDA
 import argparse
 import logging
 import os
@@ -133,11 +135,18 @@ class GromacsParser(SmartParser.ParserBase):
         self.boxlengths = None
         self.latticevectors = None
         self.atompositions = None
+        self.inputcoords = None
+        self.inputpositions = None
+        self.outputcoords = None
+        self.outputpositions = None
         # start with -1 since zeroth iteration is the initialization
         self.MDiter = -1
+        self.MDlogsteps = None
+        self.MDlogstep = None
         self.MDstep = 1
         self.MDcurrentstep = -1
         self.MDnextstep = 0
+        self.MDnextlogstep = 0
         self.singleConfCalcs = []
         self.minConverged = None
         self.parsedLogFile = False
@@ -239,11 +248,18 @@ class GromacsParser(SmartParser.ParserBase):
                 autoopenclose=False)
         if atLeastOneFileExist:
             self.MDData.initializeFileHandlers(self)
-            self.atompositions = self.trajectory.positions()
+            if self.topology:
+                self.topoDict = self.topology.topoDict
+            if self.trajectory:
+                self.atompositions = self.trajectory.positions()
+            if self.inputcoords:
+                self.inputpositions = self.inputcoords.positions()
+            if self.outputcoords:
+                self.outputpositions = self.outputcoords.positions()
         #self.MDiter += self.MDstep
         self.MDiter += 1
-        self.MDcurrentstep = self.MDiter
-        self.stepcontrolDict.update({"MDcurrentstep" : self.MDcurrentstep})
+        self.MDcurrentstep =  int(self.MDiter)
+        self.stepcontrolDict.update({"MDcurrentstep" : int(self.MDcurrentstep)})
             #pass
 
     def onOpen_x_gromacs_section_control_parameters(self, backend, gIndex, section):
@@ -277,22 +293,22 @@ class GromacsParser(SmartParser.ParserBase):
         nstlogKey = isMetaStrInDict("nstlog", self.cntrlDict)
         nstxoutKey = isMetaStrInDict("nstxout", self.cntrlDict)
         nstenergyKey = isMetaStrInDict("nstenergy", self.cntrlDict)
-        if "nsteps" in nstepKey:
+        if nstepKey is not None:
             if self.cntrlDict[nstepKey].activeInfo:
                 nsteps = conv_int(self.cntrlDict[nstepKey].value, default=0)
             else:
                 nsteps = conv_int(self.cntrlDict[nstepKey].defaultValue, default=0)
-        if "nstlog" in nstlogKey:
+        if nstlogKey is not None:
             if self.cntrlDict[nstlogKey].activeInfo:
                 nlogsteps = conv_int(self.cntrlDict[nstlogKey].value, default=0)
             else:
                 nlogsteps = conv_int(self.cntrlDict[nstlogKey].defaultValue, default=0)
-        if "nstxout" in nstxoutKey:
+        if nstxoutKey is not None:
             if self.cntrlDict[nstxoutKey].activeInfo:
                 ntrajsteps = conv_int(self.cntrlDict[nstxoutKey].value, default=0)
             else:
                 ntrajsteps = conv_int(self.cntrlDict[nstxoutKey].defaultValue, default=0)
-        if "nstenergy" in nstenergyKey:
+        if nstenergyKey is not None:
             if self.cntrlDict[nstenergyKey].activeInfo:
                 nenersteps = conv_int(self.cntrlDict[nstenergyKey].value, default=0)
             else:
@@ -311,6 +327,8 @@ class GromacsParser(SmartParser.ParserBase):
         else:
             enersteps = [0]
         logsteps.append(nsteps)
+        self.MDlogsteps=logsteps
+        self.MDlogstep = 0
         trajsteps.append(nsteps)
         enersteps.append(nsteps)
         self.stepcontrolDict.update({"logsteps"     : logsteps})
@@ -319,10 +337,16 @@ class GromacsParser(SmartParser.ParserBase):
         self.stepcontrolDict.update({"enersteps"    : enersteps})
         #steps = logsteps if len(logsteps)>len(trajsteps) else trajsteps
         #followsteps = "log" if len(logsteps)>len(trajsteps) else "traj"
-        steps = logsteps 
+        #steps = logsteps 
+        steps = []
+        for step in range(0,nsteps+1):
+            if(step in logsteps or
+               step in trajsteps or 
+               step in enersteps):
+               steps.append(step)
         followsteps = "log" 
-        self.stepcontrolDict.update({"steps"  : steps if len(steps)>len(enersteps) else enersteps})
-        self.stepcontrolDict.update({"follow" : followsteps if len(steps)>len(enersteps) else "ener"})
+        self.stepcontrolDict.update({"steps"  : steps if len(steps)>=len(enersteps) else enersteps})
+        self.stepcontrolDict.update({"follow" : followsteps if len(steps)>=len(enersteps) else "ener"})
 
     def onOpen_section_method(self, backend, gIndex, section):
         # keep track of the latest method section
@@ -445,7 +469,8 @@ class GromacsParser(SmartParser.ParserBase):
             # If iread returns None, it will be the last step
             try:
                 self.atompositions = self.trajectory.positions()
-                numatoms = len(self.atompositions)
+                if self.atompositions is not None:
+                    numatoms = len(self.atompositions)
                 #self.MDiter += self.MDstep
                 self.MDiter += 1
             except AttributeError:
@@ -483,16 +508,21 @@ class GromacsParser(SmartParser.ParserBase):
         trajsteps = self.stepcontrolDict["trajsteps"]
         #if len(steps)>1:
         #    self.MDstep = steps[1]-steps[0]
+        timestep = 0.0001
+        istimestep = isMetaStrInDict("dt",self.cntrlDict)
+        if istimestep is not None:
+            if self.cntrlDict[istimestep].value is not None:
+                timestep = float(self.cntrlDict[istimestep].value)
         if self.MDiter<len(steps):
             self.MDcurrentstep = steps[self.MDiter]
         else:
             self.MDcurrentstep += 1
         if self.MDiter+1<len(steps):
             self.MDnextstep = self.MDcurrentstep + steps[self.MDiter+1] - steps[self.MDiter]
-            self.stepcontrolDict.update({"nextlogsteps":logsteps[self.MDiter+1:]})
         else:
             self.MDnextstep = steps[-1] + 1
         self.stepcontrolDict.update({"MDcurrentstep" : self.MDcurrentstep})
+        self.stepcontrolDict.update({"MDcurrenttime" : self.MDcurrentstep*timestep})
 
         if(self.MDcurrentstep in logsteps or
            self.MDcurrentstep in enersteps):
@@ -534,9 +564,8 @@ class GromacsParser(SmartParser.ParserBase):
             #backend.addValue('single_configuration_to_calculation_method_ref', self.secMethodGIndex)
             backend.addValue('single_configuration_calculation_to_system_ref', self.secSystemGIndex)
         else:
-            if((self.MDcurrentstep in logsteps or
-                self.MDcurrentstep in enersteps) and 
-                self.MDiter+1 in steps):
+            if(self.MDcurrentstep in logsteps or
+               self.MDcurrentstep in enersteps):
                 self.MDiter += 1
         if self.MDiter<len(steps):
             self.MDcurrentstep = steps[self.MDiter]
@@ -544,10 +573,18 @@ class GromacsParser(SmartParser.ParserBase):
             self.MDcurrentstep += 1
         if self.MDiter+1<len(steps):
             self.MDnextstep = self.MDcurrentstep + steps[self.MDiter+1] - steps[self.MDiter]
-            self.stepcontrolDict.update({"nextlogsteps":logsteps[self.MDiter+1:]})
         else:
             self.MDnextstep = steps[-1] + 1
+        if self.MDcurrentstep in logsteps:
+            self.MDlogstep = self.MDcurrentstep
+            self.MDlogsteps.pop(0)
+        if len(self.MDlogsteps)>0:
+            self.MDnextlogstep=self.MDlogsteps[0]
+        else:
+            self.MDnextlogstep=logsteps[-1] + 1
+        self.stepcontrolDict.update({"nextlogsteps" : logsteps})
         self.stepcontrolDict.update({"MDcurrentstep" : self.MDcurrentstep})
+        self.stepcontrolDict.update({"MDcurrenttime" : self.MDcurrentstep*timestep})
         backend.superBackend.closeSection("section_single_configuration_calculation", self.secSingleGIndex)
 
     def setStartingPointCalculation(self, parser):
@@ -557,7 +594,43 @@ class GromacsParser(SmartParser.ParserBase):
             backend.addValue('calculation_to_calculation_ref', self.lastCalculationGIndex)
             backend.closeSection('section_calculation_to_calculation_refs')
         return None
+
+    def convertInt(self, fname, value):
+        keyMapper = {
+                "Step" : "MDcurrentstep",
+                }
+        if value is not None:
+            for k,v in keyMapper.items():
+                if fname in k:
+                    return int(value)
+        return value
     
+    def convertFloat(self, fname, value):
+        keyMapper = {
+                "Step" : "MDcurrentstep",
+                }
+        if value is not None:
+            for k,v in keyMapper.items():
+                if fname in k:
+                    return float(value)
+        return value
+    
+    def updateTimeStep(self, fname, value):
+        keyMapper = {
+                "Time" : "MDcurrentstep",
+                }
+        timestep = 0.0001
+        istimestep = isMetaStrInDict("dt",self.cntrlDict)
+        if istimestep is not None:
+            if self.cntrlDict[istimestep].value is not None:
+                timestep = float(self.cntrlDict[istimestep].value)
+        if value is not None:
+            for k,v in keyMapper.items():
+                if fname in k:
+                    if timestep>0:
+                        return int(value/timestep)
+        return value
+
     def build_subMatchers(self):
         """Builds the sub matchers to parse the main output file.
         """
@@ -568,10 +641,14 @@ class GromacsParser(SmartParser.ParserBase):
                 "Improper Dih."  : "Improper-Dih.",
                 "CMAP Dih."      : "CMAP-Dih.",
                 "LJ (SR)"        : "LJ-(SR)",
+                "LJ (LR)"        : "LJ-(LR)",
+                "Disper. corr."  : "Disper.-corr.",
                 "Coulomb (SR)"   : "Coulomb-(SR)",
+                "Coul. recip."   : "Coul.-recip.",
                 "Kinetic En."    : "Kinetic-En.",
                 "Total Energy"   : "Total-Energy",
                 "Conserved En."  : "Conserved-En.",
+                "Pres. DC (bar)" : "Pres.-DC-(bar)",
                 "Pressure (bar)" : "Pressure-(bar)",
                 "Constr. rmsd"   : "Constr.-rmsd",
                 }
@@ -599,7 +676,7 @@ class GromacsParser(SmartParser.ParserBase):
                   "lineFilter"       : None,
                   "movetostopline"   : False,
                   "parsercntrlattr"  : "MDcurrentstep",
-                  "parsercntrlin"    : "logsteps",
+                  "parsercntrlin"    : "MDlogsteps",
                   "lookupdict"       : "stepcontrolDict" 
                   }
               },
@@ -629,6 +706,33 @@ class GromacsParser(SmartParser.ParserBase):
                   "lookupdict"       : "stepcontrolDict" 
                   }
               },
+            # time to step converter Parser
+            { "startReStr"        : "AlwaysRun",
+              "parser"            : "dictionary_parser",
+              "parsername"        : "frameseq_step_parser",
+              "waitlist"          : None,
+              "stopOnMatchStr"    : "AlwaysStop",
+              "quitOnMatchStr"    : "AlwaysStop",
+              "metaNameStart"     : PARSERTAG + "_mdout_", 
+              "matchNameList"     : mddataNameList,
+              "matchNameDict"     : "mddataDict",
+              "updateMatchDict"   : True,
+              "onlyCaseSensitive" : True,
+              "stopOnFirstLine"   : True,
+              "parserOptions"     : { 
+                  "dictionary"       : "mddataDict", 
+                  "dicttype"         : "smartparser", # (standard or smartparser)
+                  "readwritedict"    : "read", 
+                  "keyMapper"        : {"Step" : "Time"},
+                  "updatefunc"       : "max",
+                  "updateattrs"      : ["MDcurrentstep"],
+                  "preprocess"       : self.convertFloat,
+                  "postprocess"      : self.updateTimeStep,
+                  "parsercntrlattr"  : "MDcurrentstep",
+                  "parsercntrlin"    : "enersteps",
+                  "lookupdict"       : "stepcontrolDict" 
+                  }
+              },
             # energy Log Parser
             { "startReStr"        : r"\s*Energies\s*",
               "parser"            : "table_parser",
@@ -649,13 +753,14 @@ class GromacsParser(SmartParser.ParserBase):
                   "tablestartsat"    : r"\s*Energies\s*", 
                   "tableendsat"      : r"^\s*$", 
                   "skiplines"        : 1, 
+                  "movetostopline"   : False,
                   "lineFilter"       : energyFilter,
-                  "parsercntrlattr"  : "MDcurrentstep",
-                  "parsercntrlin"    : "logsteps",
+                  #"parsercntrlattr"  : "MDcurrentstep",
+                  #"parsercntrlin"    : "MDlogsteps",
                   "controlsections"  : ["section_single_configuration_calculation"], 
                   "controlsave"      : "sectioncontrol", 
                   "controldict"      : "stepcontrolDict",
-                  "lookupdict"       : "stepcontrolDict" 
+                  #"lookupdict"       : "stepcontrolDict" 
                   }
               },
             # thermostat save Parser
@@ -674,14 +779,20 @@ class GromacsParser(SmartParser.ParserBase):
               "parserOptions"     : { 
                   "dictionary"       : "stepcontrolDict", 
                   "dicttype"         : "standard", # (standard or smartparser)
-                  "readwritedict"    : "read", 
+                  "readwritedict"    : "write", 
                   "keyMapper"        : {"Step" : "MDcurrentstep"},
-                  "controlsections"  : None, 
+                  "updatefunc"       : "max",
+                  "updateattrs"      : ["MDcurrentstep"],
+                  #"controlsections"  : None, 
+                  "controlsections"  : ["section_single_configuration_calculation"], 
                   "controlsave"      : "sectioncontrol", 
                   "controldict"      : "stepcontrolDict",
-                  "parsercntrlattr"  : "MDcurrentstep",
-                  "parsercntrlin"    : "steps",
-                  "lookupdict"       : "stepcontrolDict" 
+                  "controlattrs"     : ["MDcurrentstep"],
+                  "preprocess"       : self.convertInt,
+                  "postprocess"      : self.convertInt,
+                  #"parsercntrlattr"  : "MDcurrentstep",
+                  #"parsercntrlin"    : "steps",
+                  #"lookupdict"       : "stepcontrolDict" 
                   }
               },
             # Section Control Parser
@@ -726,8 +837,8 @@ class GromacsParser(SmartParser.ParserBase):
               "parserOptions"     : { 
                   "waitatlineStr"    : r"\s*(?:Step\s*Time|Energies)\s*",
                   "controlwait"      : "nextlogsteps", 
-                  "controlattr"      : "MDcurrentstep", 
-                  "controlnextattr"  : "MDnextstep", 
+                  "controlattr"      : "MDlogstep", 
+                  "controlnextattr"  : "MDnextlogstep", 
                   "controllast"      : -1, 
                   "controlskip"      : [], 
                   "controlin"        : "logsteps", 
