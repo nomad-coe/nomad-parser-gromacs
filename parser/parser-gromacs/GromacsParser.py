@@ -446,19 +446,37 @@ class GromacsParser(SmartParser.ParserBase):
                 self.onClose_section_topology(backend, None, None)
             SloppyBackend.addValue("topology_ref", self.secTopologyGIndex)
 
+        coordinates=None
         if self.trajectory is not None:
+            coordinates=self.trajectory
+            positions=self.atompositions
+        elif(self.inputcoords is not None and 
+             self.MDcurrentstep == steps[0]):
+            coordinates=self.inputcoords
+            positions=self.inputpositions
+        elif(self.outputcoords is not None and
+             self.MDcurrentstep == steps[-1]):
+            coordinates=self.outputcoords
+            positions=self.outputpositions
+
+        if(coordinates is not None and positions is not None):
             self.trajRefSingleConfigurationCalculation = gIndex
-            if self.trajectory.unitcell_vectors is not None:
+            if coordinates.unitcell_vectors is not None:
                 unit_cell = np.asarray(self.metaStorage.convertUnits(
                     self.trajectory.unitcell_vectors, "Angstrom", self.unitDict))
                 SloppyBackend.addArrayValues('simulation_cell', unit_cell)
                 SloppyBackend.addArrayValues('lattice_vectors', unit_cell)
-            if self.trajectory.unitcell_lengths is not None:
+            if coordinates.unitcell_lengths is not None:
                 SloppyBackend.addArrayValues(PARSERTAG + '_lattice_lengths', self.trajectory.unitcell_lengths)
-            if self.trajectory.unitcell_angles is not None:
+            if coordinates.unitcell_angles is not None:
                 SloppyBackend.addArrayValues(PARSERTAG + '_lattice_angles', self.trajectory.unitcell_angles)
-            SloppyBackend.addArrayValues('atom_positions', np.transpose(np.asarray(
-                self.metaStorage.convertUnits(self.atompositions, "Angstrom", self.unitDict))))
+            if(isinstance(positions, np.ndarray) or isinstance(positions, (tuple, list))):
+                SloppyBackend.addArrayValues('atom_positions', np.transpose(np.asarray(
+                    self.metaStorage.convertUnits(positions, "Angstrom", self.unitDict))))
+            if coordinates.velocities is not None:
+                SloppyBackend.addArrayValues('atom_velocities', np.transpose(np.asarray(
+                    self.metaStorage.convertUnits(
+                        coordinates.velocities, "Angstrom/(pico-second)", self.unitDict))))
             if self.topology is not None:
                 atom_labels = self.topology.topoDict["atom_element_list"]
                 numatoms = len(atom_labels)
