@@ -24,33 +24,33 @@ object GromacsParserTests extends Specification {
     }
   }
   "GromacsParserTest_5" >> {
-    "[water] test with json-events" >> {
-      ParserRun.parse(GromacsParser, "parsers/gromacs/test/examples/water/md.log", "json-events") must_== ParseResult.ParseSuccess
-    }
-  }
-  "GromacsParserTest_6" >> {
-    "[water] test with json" >> {
-      ParserRun.parse(GromacsParser, "parsers/gromacs/test/examples/water/md.log", "json") must_== ParseResult.ParseSuccess
-    }
-  }
-  "GromacsParserTest_7" >> {
     "[tip4p] test with json-events" >> {
       ParserRun.parse(GromacsParser, "parsers/gromacs/test/examples/tip4p/md.log", "json-events") must_== ParseResult.ParseSuccess
     }
   }
-  "GromacsParserTest_8" >> {
+  "GromacsParserTest_6" >> {
     "[tip4p] test with json" >> {
       ParserRun.parse(GromacsParser, "parsers/gromacs/test/examples/tip4p/md.log", "json") must_== ParseResult.ParseSuccess
     }
   }
-  "GromacsParserTest_9" >> {
+  "GromacsParserTest_7" >> {
     "[Fe] test with json-events" >> {
       ParserRun.parse(GromacsParser, "parsers/gromacs/test/examples/fe_test/md.log", "json-events") must_== ParseResult.ParseSuccess
     }
   }
-  "GromacsParserTest_10" >> {
+  "GromacsParserTest_8" >> {
     "[Fe] test with json" >> {
       ParserRun.parse(GromacsParser, "parsers/gromacs/test/examples/fe_test/md.log", "json") must_== ParseResult.ParseSuccess
     }
   }
+  //"GromacsParserTest_9" >> {
+  //  "[water] test with json-events" >> {
+  //    ParserRun.parse(GromacsParser, "parsers/gromacs/test/examples/water/md.log", "json-events") must_== ParseResult.ParseSuccess
+  //  }
+  //}
+  //"GromacsParserTest_10" >> {
+  //  "[water] test with json" >> {
+  //    ParserRun.parse(GromacsParser, "parsers/gromacs/test/examples/water/md.log", "json") must_== ParseResult.ParseSuccess
+  //  }
+  //}
 }
