@@ -595,11 +595,13 @@ class GromacsParser(SmartParser.ParserBase):
             self.MDnextstep = steps[-1] + 1
         if self.MDcurrentstep in logsteps:
             self.MDlogstep = self.MDcurrentstep
-            self.MDlogsteps.pop(0)
+            if len(self.MDlogsteps)>1:
+                self.MDlogsteps.pop(0)
         if len(self.MDlogsteps)>0:
             self.MDnextlogstep=self.MDlogsteps[0]
         else:
-            self.MDnextlogstep=logsteps[-1] + 1
+            if len(logsteps)>0:
+                self.MDnextlogstep=logsteps[-1]
         self.stepcontrolDict.update({"nextlogsteps" : logsteps})
         self.stepcontrolDict.update({"MDcurrentstep" : self.MDcurrentstep})
         self.stepcontrolDict.update({"MDcurrenttime" : self.MDcurrentstep*timestep})
