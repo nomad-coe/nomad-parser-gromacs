@@ -5,7 +5,7 @@
 This is the parser for GROMACS gmx Molecular Dynamics (mdrun) in [GROMACS](http://www.gromacs.org).
 The official version lives at:
 
-    git@gitlab.mpcdf.mpg.de:nomad-lab/parser-gromacs.git
+    git clone git@gitlab.mpcdf.mpg.de:nomad-lab/parser-gromacs.git
 
 You can browse it at:
 
