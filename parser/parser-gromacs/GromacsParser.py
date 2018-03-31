@@ -24,6 +24,7 @@ import os
 import re
 import sys
 import datetime
+import io
 
 ############################################################
 # This is the parser for the main file of Gromacs.
@@ -159,6 +160,9 @@ class GromacsParser(SmartParser.ParserBase):
         self.secOpen = open_section
         self.superP = self.parser.backend.superBackend
         self.MDData = MDDA.MDDataAccess()
+        if self.recordList:
+            self.recordList.close()
+        self.recordList = io.StringIO()
 
     def startedParsing(self, fInName, parser):
         """Function is called when the parsing starts.
@@ -1052,6 +1056,10 @@ class GromacsParser(SmartParser.ParserBase):
                        self.adHoc_takingover_parsing(p,
                            stopOnMatchStr=r"\s*Started\s*mdrun\s*on",
                            quitOnMatchStr=None, 
+                           stopControl="stopControl", # if None or True, stop with quitMatch, else wait
+                           record=False, # if False or None, no record, no replay
+                           replay=0, # if 0 or None= no replay, if <0 infinite replay
+                           parseOnlyRecorded=False, # if True, parsers only work on record
                            ordered=False,
                            subParsers=mdinoutSubParsers)
                        ), # END SectionControlParm
@@ -1076,6 +1084,10 @@ class GromacsParser(SmartParser.ParserBase):
                                      self.adHoc_takingover_parsing(p,
                                          stopOnMatchStr=r"\s*(?:A\s*V\s*E\s*R\s*A\s*G\s*E\s*S|#####)\s*",
                                          quitOnMatchStr=r"\s*(?:A\s*V\s*E\s*R\s*A\s*G\s*E\s*S|#####)\s*",
+                                         stopControl="stopControl", # if None or True, stop with quitMatch, else wait
+                                         record=False, # if False or None, no record, no replay
+                                         replay=0, # if 0 or None= no replay, if <0 infinite replay
+                                         parseOnlyRecorded=False, # if True, parsers only work on record
                                          ordered=False,
                                          onlySubParsersReadLine=True,
                                          subParsers=mdoutSubParsers)
