@@ -22,7 +22,7 @@ object GromacsParser extends SimpleExternalParserGenerator(
       )) :: Nil
   ),
   mainFileTypes = Seq("text/.*"),
-  mainFileRe = """.*?\bLog\s*file\b.*?\bGROMACS\s*-\s*gmx\b.*?""".r,
+  mainFileRe = """.*?\bLog\s*file\b.*\n(?:.*\n)*\s*:-\)\s*GROMACS\s*-\s*gmx\b.*""".r,
   cmd = Seq(DefaultPythonInterpreter.pythonExe(), "${envDir}/parsers/gromacs/parser/parser-gromacs/GromacsParser.py",
     "${mainFilePath}"),
   resList = Seq(
