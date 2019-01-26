@@ -60,7 +60,7 @@ class GromacsParser(SmartParser.ParserBase):
         # dictionary of energy values, which are tracked between SCF iterations and written after convergence
         self.totalEnergyList = {
                                 'energy_electrostatic': None,
-                                'energy_total_T0_per_atom': None,
+                                'energy_total_t0_per_atom': None,
                                 'energy_free_per_atom': None,
                                }
         SmartParser.ParserBase.__init__(
@@ -220,8 +220,8 @@ class GromacsParser(SmartParser.ParserBase):
         self.metaStorage.updateBackend(backend.superBackend, 
                 startsection=['section_frame_sequence'],
                 autoopenclose=False)
-        backend.addValue("frame_sequence_to_sampling_ref", self.secSamplingGIndex)
-        backend.addArrayValues("frame_sequence_local_frames_ref", np.asarray(self.singleConfCalcs))
+        backend.addValue("frame_sequence_to_sampling_method_ref", self.secSamplingGIndex)
+        backend.addArrayValues("frame_sequence_to_frames_ref", np.asarray(self.singleConfCalcs))
         backend.closeSection("section_frame_sequence", frameSequenceGIndex)
 
         # reset all variables
@@ -573,16 +573,16 @@ class GromacsParser(SmartParser.ParserBase):
             section_singlevdw_Dict = get_updateDictionary(self, 'singlevdw')
             updateDictVDW = {
                 'startSection' : [
-                    ['section_energy_van_der_Waals']],
+                    ['section_energy_van_der_waals']],
                 #'muteSections' : [['section_sampling_method']],
                 'dictionary' : section_singlevdw_Dict
                 }
-            self.secVDWGIndex = backend.superBackend.openSection("section_energy_van_der_Waals")
+            self.secVDWGIndex = backend.superBackend.openSection("section_energy_van_der_waals")
             self.metaStorage.update(updateDictVDW)
             self.metaStorage.updateBackend(backend.superBackend, 
-                    startsection=['section_energy_van_der_Waals'],
+                    startsection=['section_energy_van_der_waals'],
                     autoopenclose=False)
-            backend.superBackend.closeSection("section_energy_van_der_Waals", self.secVDWGIndex)
+            backend.superBackend.closeSection("section_energy_van_der_waals", self.secVDWGIndex)
             section_singlecalc_Dict = get_updateDictionary(self, 'singleconfcalc')
             updateDict = {
                 'startSection' : [
@@ -597,7 +597,7 @@ class GromacsParser(SmartParser.ParserBase):
         if self.MDcurrentstep in trajsteps:
             self.onOpen_section_system(backend, None, None)
             self.onClose_section_system(backend, None, None)
-            #backend.addValue('single_configuration_to_calculation_method_ref', self.secMethodGIndex)
+            #backend.addValue('single_configuration_calculation_to_method_ref', self.secMethodGIndex)
             backend.addValue('single_configuration_calculation_to_system_ref', self.secSystemGIndex)
         else:
             if(self.MDcurrentstep in logsteps or
