@@ -50,3 +50,5 @@ TAGS
 
 lib/
 env/
+
+*.egg-info

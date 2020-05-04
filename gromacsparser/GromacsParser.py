@@ -1,11 +1,11 @@
 # Copyright 2016-2018 Berk Onat, Fawzi Mohamed
-# 
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,7 +15,6 @@
 from builtins import map
 from builtins import range
 from builtins import object
-import setup_paths
 import numpy as np
 import nomadcore.ActivateLogging
 from nomadcore.caching_backend import CachingLevel
@@ -25,11 +24,11 @@ from nomadcore.smart_parser import SmartParserCommon as SmartParser
 from nomadcore.smart_parser.SmartParserCommon import get_metaInfo, conv_str, conv_int, conv_float, open_section
 from nomadcore.smart_parser.SmartParserDictionary import getList_MetaStrInDict, getDict_MetaStrInDict
 from nomadcore.smart_parser.SmartParserDictionary import isMetaStrInDict
-from GromacsDictionary import get_updateDictionary, set_Dictionaries
-from GromacsCmdLineArgs import get_commandLineArguments
-from GromacsCommon import PARSERNAME, PROGRAMNAME, PARSERVERSION, PARSERTAG, LOGGER
-from GromacsCommon import PARSER_INFO_DEFAULT, META_INFO_PATH, set_excludeList, set_includeList
-from GromacsCmdLineArgs import get_commandLineArguments
+from .GromacsDictionary import get_updateDictionary, set_Dictionaries
+from .GromacsCmdLineArgs import get_commandLineArguments
+from .GromacsCommon import PARSERNAME, PROGRAMNAME, PARSERVERSION, PARSERTAG, LOGGER
+from .GromacsCommon import PARSER_INFO_DEFAULT, META_INFO_PATH, set_excludeList, set_includeList
+from .GromacsCmdLineArgs import get_commandLineArguments
 #import nomadcore.md_data_access.MDDataAccess as MDDA
 from nomadcore.md_data_access import MDDataAccess as MDDA
 import argparse
@@ -65,7 +64,7 @@ class GromacsParser(SmartParser.ParserBase):
                                }
         SmartParser.ParserBase.__init__(
             self, re_program_name=re.compile(r"\s*"+PROGRAMNAME+"$"),
-            parsertag=PARSERTAG, metainfopath=META_INFO_PATH, 
+            parsertag=PARSERTAG, metainfopath=META_INFO_PATH,
             parserinfodef=PARSER_INFO_DEFAULT)
 
         set_Dictionaries(self)
@@ -83,27 +82,27 @@ class GromacsParser(SmartParser.ParserBase):
             metaInfo = self.metaInfoEnv.infoKinds[name]
             if (name.startswith(PARSERTAG + '_mdin_') and
                 metaInfo.kindStr == "type_document_content" and
-                (PARSERTAG + "_mdin_method" in metaInfo.superNames or 
-                 PARSERTAG + "_mdin_run" in metaInfo.superNames or 
+                (PARSERTAG + "_mdin_method" in metaInfo.superNames or
+                 PARSERTAG + "_mdin_run" in metaInfo.superNames or
                  PARSERTAG + "_mdin_system" in metaInfo.superNames) or
                 name.startswith(PARSERTAG + '_parm_') and
                 metaInfo.kindStr == "type_document_content" and
-                (PARSERTAG + "_mdin_method" in metaInfo.superNames or 
+                (PARSERTAG + "_mdin_method" in metaInfo.superNames or
                  PARSERTAG + "_mdin_run" in metaInfo.superNames or
                  PARSERTAG + "_mdin_system" in metaInfo.superNames) or
                 #name.startswith(PARSERTAG + '_mdin_file_') and
                 name.startswith(PARSERTAG + '_inout_file_') or
                 #metaInfo.kindStr == "type_document_content" and
-                #(PARSERTAG + "_section_input_output_files" in metaInfo.superNames or 
+                #(PARSERTAG + "_section_input_output_files" in metaInfo.superNames or
                 # "section_run" in metaInfo.superNames) or
                 name.startswith(PARSERTAG + '_inout_control_') or
-                #(PARSERTAG + "_section_control_parameters" in metaInfo.superNames) or 
+                #(PARSERTAG + "_section_control_parameters" in metaInfo.superNames) or
                 #name.startswith(PARSERTAG + '_mdin_') and
                 #(PARSERTAG + "_section_control_parameters" in metaInfo.superNames) or
                 name.startswith(PARSERTAG + '_mdout_') or
                 name.startswith(PARSERTAG + '_mdout_') and
                 #metaInfo.kindStr == "type_document_content" and
-                (PARSERTAG + "_mdout_method" in metaInfo.superNames or 
+                (PARSERTAG + "_mdout_method" in metaInfo.superNames or
                  PARSERTAG + "_mdout_system" in metaInfo.superNames or
                  "section_run" in metaInfo.superNames or
                  PARSERTAG + "_mdout_single_configuration_calculation" in metaInfo.superNames)
@@ -203,8 +202,8 @@ class GromacsParser(SmartParser.ParserBase):
     def onClose_section_run(self, backend, gIndex, section):
         """Trigger called when section_run is closed.
 
-        Write the keywords from control parametres and 
-        the Gromacs output from the parsed log output, 
+        Write the keywords from control parametres and
+        the Gromacs output from the parsed log output,
         which belong to settings_run.
         Variables are reset to ensure clean start for new run.
         """
@@ -217,7 +216,7 @@ class GromacsParser(SmartParser.ParserBase):
                 'dictionary' : section_frameseq_Dict
                 }
         self.metaStorage.update(updateFrameDict)
-        self.metaStorage.updateBackend(backend.superBackend, 
+        self.metaStorage.updateBackend(backend.superBackend,
                 startsection=['section_frame_sequence'],
                 autoopenclose=False)
         backend.addValue("frame_sequence_to_sampling_ref", self.secSamplingGIndex)
@@ -232,14 +231,14 @@ class GromacsParser(SmartParser.ParserBase):
 
         Determine whether topology, trajectory and input coordinate files are
         supplied to the parser
-        
+
         Initiates topology and trajectory file handles.
 
-        Captures topology, atomic positions, atom labels, lattice vectors and 
-        stores them before section_system and 
+        Captures topology, atomic positions, atom labels, lattice vectors and
+        stores them before section_system and
         section_single_configuration_calculation are encountered.
         """
-        # Checking whether topology, input 
+        # Checking whether topology, input
         # coordinates and trajectory files exist
         atLeastOneFileExist = False
         working_dir_name = os.path.dirname(os.path.abspath(self.fName))
@@ -297,16 +296,16 @@ class GromacsParser(SmartParser.ParserBase):
             'dictionary'   : section_control_Dict
             }
         self.metaStorage.update(updateDict)
-        self.metaStorage.updateBackend(backend.superBackend, 
+        self.metaStorage.updateBackend(backend.superBackend,
                 startsection=[PARSERTAG+'_section_control_parameters'],
                 autoopenclose=False)
         # Gromacs prints the initial and final energies to the log file.
-        # The total number of MD steps in Gromacs is nsteps irrelevant 
+        # The total number of MD steps in Gromacs is nsteps irrelevant
         # to the number of steps in log file of energy file (.edr)
         nstep = 0
         nstlog = 0
         nstxout = 0
-        nstenergy = 0 
+        nstenergy = 0
         nstepKey = isMetaStrInDict("nsteps", self.cntrlDict)
         nstlogKey = isMetaStrInDict("nstlog", self.cntrlDict)
         nstxoutKey = isMetaStrInDict("nstxout", self.cntrlDict)
@@ -331,7 +330,7 @@ class GromacsParser(SmartParser.ParserBase):
                 nenersteps = conv_int(self.cntrlDict[nstenergyKey].value, default=0)
             else:
                 nenersteps = conv_int(self.cntrlDict[nstenergyKey].defaultValue, default=0)
-        
+
         if nlogsteps>0:
             logsteps = [i for i in range(0, nsteps, nlogsteps)]
         else:
@@ -355,14 +354,14 @@ class GromacsParser(SmartParser.ParserBase):
         self.stepcontrolDict.update({"enersteps"    : enersteps})
         #steps = logsteps if len(logsteps)>len(trajsteps) else trajsteps
         #followsteps = "log" if len(logsteps)>len(trajsteps) else "traj"
-        #steps = logsteps 
+        #steps = logsteps
         steps = []
         for step in range(0,nsteps+1):
             if(step in logsteps or
-               step in trajsteps or 
+               step in trajsteps or
                step in enersteps):
                steps.append(step)
-        followsteps = "log" 
+        followsteps = "log"
         self.stepcontrolDict.update({"steps"  : steps if len(steps)>=len(enersteps) else enersteps})
         self.stepcontrolDict.update({"follow" : followsteps if len(steps)>=len(enersteps) else "ener"})
 
@@ -404,11 +403,11 @@ class GromacsParser(SmartParser.ParserBase):
             'dictionary' : section_sampling_Dict
             }
         self.metaStorage.update(updateDict)
-        self.metaStorage.updateBackend(backend.superBackend, 
+        self.metaStorage.updateBackend(backend.superBackend,
                 startsection=['section_run'],
                 #startsection=['section_sampling_method'],
                 autoopenclose=False)
-    
+
     def onOpen_section_topology(self, backend, gIndex, section):
         # keep track of the latest topology description section
         if (gIndex is None or gIndex == -1 or gIndex == "-1"):
@@ -427,7 +426,7 @@ class GromacsParser(SmartParser.ParserBase):
             'dictionary' : section_topology_Dict
             }
         self.metaStorage.update(updateDict)
-        self.metaStorage.updateBackend(backend.superBackend, 
+        self.metaStorage.updateBackend(backend.superBackend,
                 startsection=['section_topology'],
                 autoopenclose=False)
         self.topology_atom_type_and_interactions(backend, gIndex)
@@ -453,12 +452,12 @@ class GromacsParser(SmartParser.ParserBase):
             SloppyBackend = backend.superBackend
         else:
             SloppyBackend = backend
-        
+
         numatoms = None
 
         if self.topology:
             if (self.secTopologyGIndex is None or
-                (self.secTopologyGIndex == -1 or 
+                (self.secTopologyGIndex == -1 or
                 self.secTopologyGIndex == "-1")):
                 self.onOpen_section_topology(backend, None, None)
                 self.onClose_section_topology(backend, None, None)
@@ -468,7 +467,7 @@ class GromacsParser(SmartParser.ParserBase):
         if self.trajectory is not None:
             coordinates=self.trajectory
             positions=self.atompositions
-        elif(self.inputcoords is not None and 
+        elif(self.inputcoords is not None and
              self.MDcurrentstep == steps[0]):
             coordinates=self.inputcoords
             positions=self.inputpositions
@@ -579,7 +578,7 @@ class GromacsParser(SmartParser.ParserBase):
                 }
             self.secVDWGIndex = backend.superBackend.openSection("section_energy_van_der_Waals")
             self.metaStorage.update(updateDictVDW)
-            self.metaStorage.updateBackend(backend.superBackend, 
+            self.metaStorage.updateBackend(backend.superBackend,
                     startsection=['section_energy_van_der_Waals'],
                     autoopenclose=False)
             backend.superBackend.closeSection("section_energy_van_der_Waals", self.secVDWGIndex)
@@ -591,7 +590,7 @@ class GromacsParser(SmartParser.ParserBase):
                 'dictionary' : section_singlecalc_Dict
                 }
             self.metaStorage.update(updateDict)
-            self.metaStorage.updateBackend(backend.superBackend, 
+            self.metaStorage.updateBackend(backend.superBackend,
                     startsection=['section_single_configuration_calculation'],
                     autoopenclose=False)
         if self.MDcurrentstep in trajsteps:
@@ -642,7 +641,7 @@ class GromacsParser(SmartParser.ParserBase):
                 if fname in k:
                     return int(value)
         return value
-    
+
     def convertFloat(self, fname, value):
         keyMapper = {
                 "Step" : "MDcurrentstep",
@@ -652,7 +651,7 @@ class GromacsParser(SmartParser.ParserBase):
                 if fname in k:
                     return float(value)
         return value
-    
+
     def updateTimeStep(self, fname, value):
         keyMapper = {
                 "Time" : "MDcurrentstep",
@@ -699,23 +698,23 @@ class GromacsParser(SmartParser.ParserBase):
               "waitlist"          : None,
               "stopOnMatchStr"    : r"(?:^\s*$|\s*Step\s*Time\s*|\s*Energies\s*)",
               "quitOnMatchStr"    : r"\s*(?:A\s*V\s*E\s*R\s*A\s*G\s*E\s*S|#####)\s*",
-              "metaNameStart"     : PARSERTAG + "_mdout_", 
+              "metaNameStart"     : PARSERTAG + "_mdout_",
               "matchNameList"     : mddataNameList,
               "matchNameDict"     : "mddataDict",
               "updateMatchDict"   : True,
               "onlyCaseSensitive" : True,
               "stopOnFirstLine"   : False,
-              "parserOptions"     : { 
-                  "header"           : True, 
-                  "wrap"             : True, 
-                  "tablelines"       : 2, 
-                  "tablestartsat"    : r"\s*Step\s*Time\s*", 
-                  "tableendsat"      : r"^\s*$", 
+              "parserOptions"     : {
+                  "header"           : True,
+                  "wrap"             : True,
+                  "tablelines"       : 2,
+                  "tablestartsat"    : r"\s*Step\s*Time\s*",
+                  "tableendsat"      : r"^\s*$",
                   "lineFilter"       : None,
                   "movetostopline"   : False,
                   "parsercntrlattr"  : "MDcurrentstep",
                   "parsercntrlin"    : "MDlogsteps",
-                  "lookupdict"       : "stepcontrolDict" 
+                  "lookupdict"       : "stepcontrolDict"
                   }
               },
             # energy EDR Parser
@@ -725,23 +724,23 @@ class GromacsParser(SmartParser.ParserBase):
               "waitlist"          : None,
               "stopOnMatchStr"    : "AlwaysStop",
               "quitOnMatchStr"    : "AlwaysStop",
-              "metaNameStart"     : PARSERTAG + "_mdout_", 
+              "metaNameStart"     : PARSERTAG + "_mdout_",
               "matchNameList"     : mddataNameList,
               "matchNameDict"     : "mddataDict",
               "updateMatchDict"   : True,
               "onlyCaseSensitive" : True,
               "stopOnFirstLine"   : True,
-              "parserOptions"     : { 
-                  "dictionary"       : "thermoDict", 
+              "parserOptions"     : {
+                  "dictionary"       : "thermoDict",
                   "dicttype"         : "standard", # (standard or smartparser)
-                  "readwritedict"    : "read", 
+                  "readwritedict"    : "read",
                   "keyMapper"        : None,
-                  "controlsections"  : ["section_single_configuration_calculation"], 
-                  "controlsave"      : "sectioncontrol", 
+                  "controlsections"  : ["section_single_configuration_calculation"],
+                  "controlsave"      : "sectioncontrol",
                   "controldict"      : "stepcontrolDict",
                   "parsercntrlattr"  : "MDcurrentstep",
                   "parsercntrlin"    : "enersteps",
-                  "lookupdict"       : "stepcontrolDict" 
+                  "lookupdict"       : "stepcontrolDict"
                   }
               },
             # time to step converter Parser
@@ -751,16 +750,16 @@ class GromacsParser(SmartParser.ParserBase):
               "waitlist"          : None,
               "stopOnMatchStr"    : "AlwaysStop",
               "quitOnMatchStr"    : "AlwaysStop",
-              "metaNameStart"     : PARSERTAG + "_mdout_", 
+              "metaNameStart"     : PARSERTAG + "_mdout_",
               "matchNameList"     : mddataNameList,
               "matchNameDict"     : "mddataDict",
               "updateMatchDict"   : True,
               "onlyCaseSensitive" : True,
               "stopOnFirstLine"   : True,
-              "parserOptions"     : { 
-                  "dictionary"       : "mddataDict", 
+              "parserOptions"     : {
+                  "dictionary"       : "mddataDict",
                   "dicttype"         : "smartparser", # (standard or smartparser)
-                  "readwritedict"    : "read", 
+                  "readwritedict"    : "read",
                   "keyMapper"        : {"Step" : "Time"},
                   "updatefunc"       : "max",
                   "updateattrs"      : ["MDcurrentstep"],
@@ -768,7 +767,7 @@ class GromacsParser(SmartParser.ParserBase):
                   "postprocess"      : self.updateTimeStep,
                   "parsercntrlattr"  : "MDcurrentstep",
                   "parsercntrlin"    : "enersteps",
-                  "lookupdict"       : "stepcontrolDict" 
+                  "lookupdict"       : "stepcontrolDict"
                   }
               },
             # energy Log Parser
@@ -778,27 +777,27 @@ class GromacsParser(SmartParser.ParserBase):
               "waitlist"          : [["log_step_parser"]],
               "stopOnMatchStr"    : r"\s*Step\s*Time\s*",
               "quitOnMatchStr"    : r"\s*(?:A\s*V\s*E\s*R\s*A\s*G\s*E\s*S|#####)\s*",
-              "metaNameStart"     : PARSERTAG + "_mdout_", 
+              "metaNameStart"     : PARSERTAG + "_mdout_",
               "matchNameList"     : mddataNameList,
               "matchNameDict"     : "mddataDict",
               "updateMatchDict"   : True,
               "onlyCaseSensitive" : True,
               "stopOnFirstLine"   : False,
-              "parserOptions"     : { 
-                  "header"           : True, 
-                  "wrap"             : True, 
-                  "tablelines"       : 2, 
-                  "tablestartsat"    : r"\s*Energies\s*", 
-                  "tableendsat"      : r"^\s*$", 
-                  "skiplines"        : 1, 
+              "parserOptions"     : {
+                  "header"           : True,
+                  "wrap"             : True,
+                  "tablelines"       : 2,
+                  "tablestartsat"    : r"\s*Energies\s*",
+                  "tableendsat"      : r"^\s*$",
+                  "skiplines"        : 1,
                   "movetostopline"   : False,
                   "lineFilter"       : energyFilter,
                   #"parsercntrlattr"  : "MDcurrentstep",
                   #"parsercntrlin"    : "MDlogsteps",
-                  "controlsections"  : ["section_single_configuration_calculation"], 
-                  "controlsave"      : "sectioncontrol", 
+                  "controlsections"  : ["section_single_configuration_calculation"],
+                  "controlsave"      : "sectioncontrol",
                   "controldict"      : "stepcontrolDict",
-                  #"lookupdict"       : "stepcontrolDict" 
+                  #"lookupdict"       : "stepcontrolDict"
                   }
               },
             # thermostat save Parser
@@ -808,29 +807,29 @@ class GromacsParser(SmartParser.ParserBase):
               "waitlist"          : None,
               "stopOnMatchStr"    : "AlwaysStop",
               "quitOnMatchStr"    : "AlwaysStop",
-              "metaNameStart"     : PARSERTAG + "_mdout_", 
+              "metaNameStart"     : PARSERTAG + "_mdout_",
               "matchNameList"     : mddataNameList,
               "matchNameDict"     : "mddataDict",
               "updateMatchDict"   : True,
               "onlyCaseSensitive" : True,
               "stopOnFirstLine"   : True,
-              "parserOptions"     : { 
-                  "dictionary"       : "stepcontrolDict", 
+              "parserOptions"     : {
+                  "dictionary"       : "stepcontrolDict",
                   "dicttype"         : "standard", # (standard or smartparser)
-                  "readwritedict"    : "write", 
+                  "readwritedict"    : "write",
                   "keyMapper"        : {"Step" : "MDcurrentstep"},
                   "updatefunc"       : "max",
                   "updateattrs"      : ["MDcurrentstep"],
-                  #"controlsections"  : None, 
-                  "controlsections"  : ["section_single_configuration_calculation"], 
-                  "controlsave"      : "sectioncontrol", 
+                  #"controlsections"  : None,
+                  "controlsections"  : ["section_single_configuration_calculation"],
+                  "controlsave"      : "sectioncontrol",
                   "controldict"      : "stepcontrolDict",
                   "controlattrs"     : ["MDcurrentstep"],
                   "preprocess"       : self.convertInt,
                   "postprocess"      : self.convertInt,
                   #"parsercntrlattr"  : "MDcurrentstep",
                   #"parsercntrlin"    : "steps",
-                  #"lookupdict"       : "stepcontrolDict" 
+                  #"lookupdict"       : "stepcontrolDict"
                   }
               },
             # Section Control Parser
@@ -847,16 +846,16 @@ class GromacsParser(SmartParser.ParserBase):
               "updateMatchDict"   : False,
               "onlyCaseSensitive" : True,
               "stopOnFirstLine"   : True,
-              "parserOptions"     : { 
-                  "sectionname"      : "section_single_configuration_calculation", 
-                  "sectionopen"      : True, 
-                  "sectionopenattr"  : "MDcurrentstep", 
-                  "sectionopenin"    : "steps", 
-                  "sectionclose"     : True, 
-                  "sectioncloseattr" : "MDcurrentstep", 
-                  "sectionclosein"   : "steps", 
-                  "activatesection"  : "sectioncontrol", 
-                  "lookupdict"       : "stepcontrolDict" 
+              "parserOptions"     : {
+                  "sectionname"      : "section_single_configuration_calculation",
+                  "sectionopen"      : True,
+                  "sectionopenattr"  : "MDcurrentstep",
+                  "sectionopenin"    : "steps",
+                  "sectionclose"     : True,
+                  "sectioncloseattr" : "MDcurrentstep",
+                  "sectionclosein"   : "steps",
+                  "activatesection"  : "sectioncontrol",
+                  "lookupdict"       : "stepcontrolDict"
                   }
               },
             # Step Control Parser
@@ -872,17 +871,17 @@ class GromacsParser(SmartParser.ParserBase):
               "updateMatchDict"   : False,
               "onlyCaseSensitive" : True,
               "stopOnFirstLine"   : True,
-              "parserOptions"     : { 
+              "parserOptions"     : {
                   "waitatlineStr"    : r"\s*(?:Step\s*Time|Energies)\s*",
-                  "controlwait"      : "nextlogsteps", 
-                  "controlattr"      : "MDlogstep", 
-                  "controlnextattr"  : "MDnextlogstep", 
-                  "controllast"      : -1, 
-                  "controlskip"      : [], 
-                  "controlin"        : "logsteps", 
-                  "controlcounter"   : "targetstep", 
+                  "controlwait"      : "nextlogsteps",
+                  "controlattr"      : "MDlogstep",
+                  "controlnextattr"  : "MDnextlogstep",
+                  "controllast"      : -1,
+                  "controlskip"      : [],
+                  "controlin"        : "logsteps",
+                  "controlcounter"   : "targetstep",
                   "controldict"      : "stepcontrolDict",
-                  "lookupdict"       : "stepcontrolDict" 
+                  "lookupdict"       : "stepcontrolDict"
                   }
               }
             ]
@@ -902,7 +901,7 @@ class GromacsParser(SmartParser.ParserBase):
                                      "CITE\s*THE\s*FOLLOWING\s*REFERENCE\s*"
                                      "[+]*|Running\s*on)\s*",
               "quitOnMatchStr"    : None,
-              "metaNameStart"     : PARSERTAG + "_inout_control_", 
+              "metaNameStart"     : PARSERTAG + "_inout_control_",
               "matchNameList"     : archNameList,
               "matchNameDict"     : "archDict",
               "updateMatchDict"   : True,
@@ -916,7 +915,7 @@ class GromacsParser(SmartParser.ParserBase):
               "parsername"        : "cntrl_parser",
               "stopOnMatchStr"    : r"(?:qm-opts:|grpopts:|annealing:|Initializing)\s*",
               "quitOnMatchStr"    : None,
-              "metaNameStart"     : PARSERTAG + "_inout_control_", 
+              "metaNameStart"     : PARSERTAG + "_inout_control_",
               "matchNameList"     : cntrlNameList,
               "matchNameDict"     : "cntrlDict",
               "updateMatchDict"   : True,
@@ -930,7 +929,7 @@ class GromacsParser(SmartParser.ParserBase):
               "parsername"        : "qm_parser",
               "stopOnMatchStr"    : r"(?:grpopts:|annealing:|Initializing)\s*",
               "quitOnMatchStr"    : None,
-              "metaNameStart"     : PARSERTAG + "_inout_control_", 
+              "metaNameStart"     : PARSERTAG + "_inout_control_",
               "matchNameList"     : qmNameList,
               "matchNameDict"     : "qmDict",
               "updateMatchDict"   : True,
@@ -944,7 +943,7 @@ class GromacsParser(SmartParser.ParserBase):
               "parsername"        : "grp_parser",
               "stopOnMatchStr"    : r"(?:annealing:|Initializing)\s*",
               "quitOnMatchStr"    : None,
-              "metaNameStart"     : PARSERTAG + "_inout_control_", 
+              "metaNameStart"     : PARSERTAG + "_inout_control_",
               "matchNameList"     : grpNameList,
               "matchNameDict"     : "grpDict",
               "updateMatchDict"   : True,
@@ -958,7 +957,7 @@ class GromacsParser(SmartParser.ParserBase):
               "parsername"        : "anneal_parser",
               "stopOnMatchStr"    : r"(?:qm-opts:|grpopts:|Initializing)\s*",
               "quitOnMatchStr"    : None,
-              "metaNameStart"     : PARSERTAG + "_inout_control_", 
+              "metaNameStart"     : PARSERTAG + "_inout_control_",
               "matchNameList"     : annealNameList,
               "matchNameDict"     : "annealDict",
               "updateMatchDict"   : True,
@@ -984,76 +983,76 @@ class GromacsParser(SmartParser.ParserBase):
                 sections=['section_run'],
                 fixedStartValues={'program_name': PROGRAMNAME},
                 subMatchers=[
-                    SM(name='logruntime', 
+                    SM(name='logruntime',
                        startReStr=r"\s*Log\sfile\sopened\son\s"
                                    "\s*(?P<"+PARSERTAG+"_mdin_finline>[a-zA-Z0-9:.\s]+)\s*$",
-                       adHoc=lambda p: p.backend.addValue( 
+                       adHoc=lambda p: p.backend.addValue(
                            "time_run_date_start", datetime.datetime.strptime(
-                               p.lastMatch[PARSERTAG+"_mdin_finline"].replace("\n",""), 
+                               p.lastMatch[PARSERTAG+"_mdin_finline"].replace("\n",""),
                            '%a %b %d %H:%M:%S %Y').timestamp())),
-                    SM(name='loghostinfo', 
+                    SM(name='loghostinfo',
                        startReStr=r"\s*Host:\s*(?P<"+PARSERTAG+"_program_execution_host>[a-zA-Z0-9:.]+)\s*"
                                    "pid:\s*[0-9]+\s*rank\s*ID:\s*(?P<"+PARSERTAG+"_parallel_task_nr>[0-9]+)\s*"
                                    "number\s*of\s*ranks:\s*(?P<"+PARSERTAG+"_number_of_tasks>[0-9]+)\s*$"),
-                    SM(name='programheader', 
+                    SM(name='programheader',
                        startReStr=r"\s*(:-\))?\s*GROMACS\s*-\s*(?P<"+PARSERTAG+"_program_module>[0-9a-zA-Z\s]+)\s*"
                                    ",\s*VERSION\s*(?P<program_version>[0-9.]+)\s*"),
                     # header specifing version, compilation info, task assignment
-                    SM(name='license', 
+                    SM(name='license',
                        startReStr=r"\s*GROMACS\s*is\s*written\s*by:\s*",
-                       coverageIgnore=True, 
-                       adHoc=lambda p: 
-                       self.adHoc_read_store_text_stop_parsing(p, 
+                       coverageIgnore=True,
+                       adHoc=lambda p:
+                       self.adHoc_read_store_text_stop_parsing(p,
                            stopOnMatchStr=r"\s*License,\s*or\s*[(]at\s*"
                                            "your\s*option[)]\s*any\s*"
                                            "later\s*version[.]\s*",
                            quitOnMatchStr=None,
-                           metaNameStart=PARSERTAG+"_", 
-                           metaNameStore=PARSERTAG+"_program_license", 
+                           metaNameStart=PARSERTAG+"_",
+                           metaNameStore=PARSERTAG+"_program_license",
                            matchNameList=None,
                            matchNameDict=None,
                            onlyCaseSensitive=True,
                            stopOnFirstLine=False,
                            storeFirstLine=True,
                            storeStopQuitLine=True,
-                           onQuitRunFunction=lambda p: p.backend.addValue( 
-                               PARSERTAG+"_program_license", 
-                               ' '.join(','.join(re.split(r'\s{2,}', 
+                           onQuitRunFunction=lambda p: p.backend.addValue(
+                               PARSERTAG+"_program_license",
+                               ' '.join(','.join(re.split(r'\s{2,}',
                                    p.lastMatch[PARSERTAG+"_program_license"])
                                    ).replace('\n', ' ').split()))
                            )
                        ),
-                    SM(name='module_version', 
+                    SM(name='module_version',
                        startReStr=r"\s*GROMACS:\s*(?P<"+PARSERTAG+"_mdin_finline>"
                                    "[a-zA-Z0-9,.]+[\s][a-zA-Z0-9,.]+[\s][a-zA-Z0-9,.]+[\s]"
                                    "[a-zA-Z0-9,.]+[\s]?[a-zA-Z0-9,.]+[\s])\s*",
-                       adHoc=lambda p: p.backend.addValue( 
+                       adHoc=lambda p: p.backend.addValue(
                            PARSERTAG+"_program_module_version", p.lastMatch[
                                PARSERTAG+"_mdin_finline"].replace("\n",""))),
-                    SM(name='executable_path', 
+                    SM(name='executable_path',
                        startReStr=r"\s*Executable:\s*"
                                    "(?P<"+PARSERTAG+"_mdin_finline>"
                                    "[a-zA-Z0-9/._\s]+)\s*",
-                       adHoc=lambda p: p.backend.addValue( 
+                       adHoc=lambda p: p.backend.addValue(
                            PARSERTAG+"_program_execution_path", p.lastMatch[
                                PARSERTAG+"_mdin_finline"].replace("\n",""))),
-                    SM(name='working_path', 
+                    SM(name='working_path',
                        startReStr=r"\s*Data\s*prefix:\s*"
                                    "(?P<"+PARSERTAG+"_mdin_finline>"
                                    "[a-zA-Z0-9/._\s]+)\s*",
-                       adHoc=lambda p: p.backend.addValue( 
+                       adHoc=lambda p: p.backend.addValue(
                            PARSERTAG+"_program_working_path", p.lastMatch[
                                PARSERTAG+"_mdin_finline"].replace("\n",""))),
                     SM(name='FileNameMatch',
                        startReStr=r"\s*Command\s*line:",
                        forwardMatch=True,
                        sections=[PARSERTAG+'_section_input_output_files'],
-                       coverageIgnore=True, 
-                       adHoc=lambda p: 
-                       self.adHoc_read_commandline_stop_parsing(p, 
+                       coverageIgnore=True,
+                       adHoc=lambda p:
+                       self.adHoc_read_commandline_stop_parsing(p,
                            stopOnMatchStr=r"\s*gmx\s*",
                            quitOnMatchStr=None,
-                           metaNameStart=PARSERTAG + "_", 
+                           metaNameStart=PARSERTAG + "_",
                            matchNameList="matchNames",
                            matchNameDict=self.fileDict,
                            onlyCaseSensitive=True,
@@ -1066,10 +1065,10 @@ class GromacsParser(SmartParser.ParserBase):
                        endReStr=r"\s*Started\s*mdrun\s*on",
                        forwardMatch=True,
                        sections=['section_sampling_method', PARSERTAG + '_section_control_parameters'],
-                       adHoc=lambda p: 
+                       adHoc=lambda p:
                        self.adHoc_takingover_parsing(p,
                            stopOnMatchStr=r"\s*Started\s*mdrun\s*on",
-                           quitOnMatchStr=None, 
+                           quitOnMatchStr=None,
                            stopControl="stopControl", # if None or True, stop with quitMatch, else wait
                            record=False, # if False or None, no record, no replay
                            replay=0, # if 0 or None= no replay, if <0 infinite replay
@@ -1094,7 +1093,7 @@ class GromacsParser(SmartParser.ParserBase):
                                      startReStr=r"\s*(?:Step\s*Time|Energies)\s"
                                      "(?P<"+PARSERTAG+"_mdin_finline>.*)(?:'|\")?\s*,?",
                                      forwardMatch=True,
-                                     adHoc=lambda p: 
+                                     adHoc=lambda p:
                                      self.adHoc_takingover_parsing(p,
                                          stopOnMatchStr=r"\s*(?:A\s*V\s*E\s*R\s*A\s*G\s*E\s*S|#####)\s*",
                                          quitOnMatchStr=r"\s*(?:A\s*V\s*E\s*R\s*A\s*G\s*E\s*S|#####)\s*",
@@ -1119,15 +1118,38 @@ class GromacsParser(SmartParser.ParserBase):
                        subMatchers=[
                            SM(r"\s*Time:\s*[0-9:.eEdD]+\s*[0-9.:eEdD]+\s*[0-9:.]+"),
                        ]), # END Computation
-                    SM(name='end_run', 
+                    SM(name='end_run',
                        startReStr=r"\s*Finished\s*mdrun\s*on\s*rank\s*[0-9]+\s*"
                                    "(?P<"+PARSERTAG+"_mdin_finline>[a-zA-Z0-9:.\s]+)\s*",
-                       adHoc=lambda p: p.backend.addValue( 
+                       adHoc=lambda p: p.backend.addValue(
                            "time_run_date_end", datetime.datetime.strptime(
-                               p.lastMatch[PARSERTAG+"_mdin_finline"].replace("\n",""), 
+                               p.lastMatch[PARSERTAG+"_mdin_finline"].replace("\n",""),
                            '%a %b %d %H:%M:%S %Y').timestamp())),
                 ]) # END NewRun
             ]
+
+
+class GromacsParserInterface():
+   """ A proper class envolop for running this parser from within python. """
+   def __init__(self, backend, **kwargs):
+       self.backend_factory = backend
+
+   def parse(self, mainfile):
+        from unittest.mock import patch
+        logging.info('gromacs parser started')
+        logging.getLogger('nomadcore').setLevel(logging.WARNING)
+        backend = self.backend_factory("gromacs.nomadmetainfo.json")
+        parserInfo = {'name': 'gromacs-parser', 'version': '1.0'}
+        context = GromacsParser()
+        with patch.object(sys, 'argv', ['<exe>', '--uri', 'nmd://uri', mainfile]):
+            mainFunction(
+                mainFileDescription=context.mainFileDescription(),
+                metaInfoEnv=None,
+                parserInfo=parserInfo,
+                cachingLevelForMetaName=context.cachingLevelForMetaName,
+                superContext=context,
+                superBackend=backend)
+        return backend
 
 
 if __name__ == "__main__":

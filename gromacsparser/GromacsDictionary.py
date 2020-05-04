@@ -1,22 +1,21 @@
 # Copyright 2016-2018 Berk Onat, Fawzi Mohamed
-# 
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import setup_paths
 import numpy as np
-from GromacsCommon import PARSERNAME, PROGRAMNAME, PARSERTAG
+from .GromacsCommon import PARSERNAME, PROGRAMNAME, PARSERTAG
 from nomadcore.smart_parser.SmartParserDictionary import metaNameConverter, metaNameConverter_UnderscoreSpaceDash
-from nomadcore.smart_parser.SmartParserDictionary import MetaInfoMap, FileInfoMap, MapDictionary 
+from nomadcore.smart_parser.SmartParserDictionary import MetaInfoMap, FileInfoMap, MapDictionary
 from nomadcore.smart_parser.SmartParserDictionary import getDict_MetaStrInDict, getList_MetaStrInDict, get_unitDict
 import nomadcore.md_data_access.MDDataAccess as MDData
 
@@ -26,7 +25,7 @@ def get_fileListDict():
     Returns:
         the list of defaults file namelists
     """
-    
+
     startpage = {
         'nameTranslate'   : metaNameConverter,
         'metaHeader'      : PARSERTAG,
@@ -36,13 +35,13 @@ def get_fileListDict():
         'activeSections'  : [PARSERTAG+'_section_input_output_files']
         }
     namelist = {
-        'topoltpr'     : FileInfoMap(startpage, fileFormat=['.tpr', '.tpb'], 
+        'topoltpr'     : FileInfoMap(startpage, fileFormat=['.tpr', '.tpb'],
                                      fileInterface=['mdanalysis','pymolfile','mdtraj'],
                                      infoPurpose=['topology', 'unitcell'], matchNames="-s"),
-        'trajtrr'      : FileInfoMap(startpage, fileFormat=['.trr', '.trj', '.xdr', '.cpt'], 
+        'trajtrr'      : FileInfoMap(startpage, fileFormat=['.trr', '.trj', '.xdr', '.cpt'],
                                      #fileInterface=['mdanalysis','pymolfile','mdtraj'],
                                      infoPurpose=['trajectory', 'unitcell'], matchNames="-o"),
-        'traj_compxtc' : FileInfoMap(startpage, fileFormat=['.xtc', '.xdr'], 
+        'traj_compxtc' : FileInfoMap(startpage, fileFormat=['.xtc', '.xdr'],
                                      #fileInterface=['mdanalysis','pymolfile','mdtraj'],
                                      infoPurpose=['trajectory', 'unitcell'], matchNames="-x"),
         #'statecpt'     : FileInfoMap(startpage, activeInfo=True, fileFormat=['.cpt'],
@@ -58,11 +57,11 @@ def get_fileListDict():
         'mdlog'        : FileInfoMap(startpage),
         'rerunxtc'     : FileInfoMap(startpage),
         'rotationlog'  : FileInfoMap(startpage),
-        'rotangleslog' : FileInfoMap(startpage), 
+        'rotangleslog' : FileInfoMap(startpage),
         'rotslabslog'  : FileInfoMap(startpage),
         'rottorquelog' : FileInfoMap(startpage),
         'nmmtx'        : FileInfoMap(startpage),
-        'dipolendx'    : FileInfoMap(startpage), 
+        'dipolendx'    : FileInfoMap(startpage),
         'membeddat'    : FileInfoMap(startpage),
         'membedtop'    : FileInfoMap(startpage),
         'membedndx'    : FileInfoMap(startpage)
@@ -77,11 +76,11 @@ def get_nameListDict(self, deflist):
 
     matchWith parameters:
         EOL = End of line
-        PL  = Match with previous line 
+        PL  = Match with previous line
         PW  = Previous word
         NW  = Next word (until space, comma) (DEFAULT)
         UD  = until delimeter (can be any string/character)
-        
+
         The text matched inside apostrophe or qoutation is extracted
 
     Returns:
@@ -109,7 +108,7 @@ def get_nameListDict(self, deflist):
         'SIMD instructions'  : MetaInfoMap(startpage, defaultValue='', matchWith='EOL'),
         'FFT library'        : MetaInfoMap(startpage, defaultValue='', matchWith='EOL'),
         'RDTSCP usage'       : MetaInfoMap(startpage, defaultValue='', matchWith='EOL'),
-        'C[+][+]11 compilation'  : MetaInfoMap(startpage, defaultValue='', 
+        'C[+][+]11 compilation'  : MetaInfoMap(startpage, defaultValue='',
                                                replaceTag='Cxx11 compilation', matchWith='EOL'),
         'TNG support'        : MetaInfoMap(startpage, defaultValue='', matchWith='EOL'),
         'Tracing support'    : MetaInfoMap(startpage, defaultValue='', matchWith='EOL'),
@@ -122,9 +121,9 @@ def get_nameListDict(self, deflist):
         'Build CPU features' : MetaInfoMap(startpage, defaultValue='', matchWith='EOL'),
         'C compiler'         : MetaInfoMap(startpage, defaultValue='', matchWith='EOL'),
         'C compiler flags'   : MetaInfoMap(startpage, defaultValue='', matchWith='EOL'),
-        'C[+][+] compiler'       : MetaInfoMap(startpage, defaultValue='', 
+        'C[+][+] compiler'       : MetaInfoMap(startpage, defaultValue='',
                                                replaceTag='Cxx compiler', matchWith='EOL'),
-        'C[+][+] compiler flags' : MetaInfoMap(startpage, defaultValue='', 
+        'C[+][+] compiler flags' : MetaInfoMap(startpage, defaultValue='',
                                                replaceTag='Cxx compiler flags', matchWith='EOL'),
         'Boost version'      : MetaInfoMap(startpage, defaultValue='', matchWith='EOL')
         }
@@ -140,242 +139,242 @@ def get_nameListDict(self, deflist):
         }
 
     cntrllist = {
-        'integrator'         : MetaInfoMap(startpage, defaultValue=''), 
+        'integrator'         : MetaInfoMap(startpage, defaultValue=''),
         'tinit'              : MetaInfoMap(startpage, defaultValue=0),
-        'dt'                 : MetaInfoMap(startpage, defaultValue=0.0001), 
-        'nsteps'             : MetaInfoMap(startpage, defaultValue=0), 
-        'init-step'          : MetaInfoMap(startpage, defaultValue=0), 
-        'simulation-part'    : MetaInfoMap(startpage, defaultValue=0), 
-        'comm-mode'          : MetaInfoMap(startpage, defaultValue=0), 
-        'nstcomm'            : MetaInfoMap(startpage, defaultValue=0), 
-        'bd-fric'            : MetaInfoMap(startpage, defaultValue=0), 
-        'ld-seed'            : MetaInfoMap(startpage, defaultValue=0), 
-        'emtol'              : MetaInfoMap(startpage, defaultValue=0), 
-        'emstep'             : MetaInfoMap(startpage, defaultValue=0), 
-        'niter'              : MetaInfoMap(startpage, defaultValue=0), 
-        'fcstep'             : MetaInfoMap(startpage, defaultValue=0), 
-        'nstcgsteep'         : MetaInfoMap(startpage, defaultValue=0), 
-        'nbfgscorr'          : MetaInfoMap(startpage, defaultValue=0), 
-        'rtpi'               : MetaInfoMap(startpage, defaultValue=0), 
-        'nstxout'            : MetaInfoMap(startpage, defaultValue=0), 
-        'nstvout'            : MetaInfoMap(startpage, defaultValue=0), 
-        'nstfout'            : MetaInfoMap(startpage, defaultValue=0), 
-        'nstlog'             : MetaInfoMap(startpage, defaultValue=0), 
-        'nstcalcenergy'      : MetaInfoMap(startpage, defaultValue=0), 
-        'nstenergy'          : MetaInfoMap(startpage, defaultValue=0), 
-        'nstxout-compressed' : MetaInfoMap(startpage, defaultValue=0), 
-        'compressed-x-precision' : MetaInfoMap(startpage, defaultValue=0), 
-        'cutoff-scheme'      : MetaInfoMap(startpage, defaultValue=0), 
-        'nstlist'            : MetaInfoMap(startpage, defaultValue=0), 
-        'ns-type'            : MetaInfoMap(startpage, defaultValue=0), 
-        'pbc'                : MetaInfoMap(startpage, defaultValue=0), 
-        'periodic-molecules' : MetaInfoMap(startpage, defaultValue=0), 
-        'verlet-buffer-tolerance': MetaInfoMap(startpage, defaultValue=0), 
-        'rlist'              : MetaInfoMap(startpage, defaultValue=0), 
-        'rlistlong'          : MetaInfoMap(startpage, defaultValue=0), 
-        'nstcalclr'          : MetaInfoMap(startpage, defaultValue=0), 
-        'coulombtype'        : MetaInfoMap(startpage, defaultValue=0), 
-        'coulomb-modifier'   : MetaInfoMap(startpage, defaultValue=0), 
-        'rcoulomb-switch'    : MetaInfoMap(startpage, defaultValue=0), 
-        'rcoulomb'           : MetaInfoMap(startpage, defaultValue=0), 
-        'epsilon-r'          : MetaInfoMap(startpage, defaultValue=0), 
-        'epsilon-rf'         : MetaInfoMap(startpage, defaultValue=0), 
-        'vdw-type'           : MetaInfoMap(startpage, defaultValue=0), 
-        'vdw-modifier'       : MetaInfoMap(startpage, defaultValue=0), 
-        'rvdw-switch'        : MetaInfoMap(startpage, defaultValue=0), 
-        'rvdw'               : MetaInfoMap(startpage, defaultValue=0), 
-        'DispCorr'           : MetaInfoMap(startpage, defaultValue=0), 
-        'table-extension'    : MetaInfoMap(startpage, defaultValue=0), 
-        'fourierspacing'     : MetaInfoMap(startpage, defaultValue=0), 
-        'fourier-nx'         : MetaInfoMap(startpage, defaultValue=0), 
-        'fourier-ny'         : MetaInfoMap(startpage, defaultValue=0), 
-        'fourier-nz'         : MetaInfoMap(startpage, defaultValue=0), 
-        'pme-order'          : MetaInfoMap(startpage, defaultValue=0), 
-        'ewald-rtol'         : MetaInfoMap(startpage, defaultValue=0), 
-        'ewald-rtol-lj'      : MetaInfoMap(startpage, defaultValue=0), 
-        'lj-pme-comb-rule'   : MetaInfoMap(startpage, defaultValue=0), 
-        'ewald-geometry'     : MetaInfoMap(startpage, defaultValue=0), 
-        'epsilon-surface'    : MetaInfoMap(startpage, defaultValue=0), 
-        'implicit-solvent'   : MetaInfoMap(startpage, defaultValue=0), 
-        'gb-algorithm'       : MetaInfoMap(startpage, defaultValue=0), 
-        'nstgbradii'         : MetaInfoMap(startpage, defaultValue=0), 
-        'rgbradii'           : MetaInfoMap(startpage, defaultValue=0), 
-        'gb-epsilon-solvent' : MetaInfoMap(startpage, defaultValue=0), 
-        'gb-saltconc'        : MetaInfoMap(startpage, defaultValue=0), 
-        'gb-obc-alpha'       : MetaInfoMap(startpage, defaultValue=0), 
-        'gb-obc-beta'        : MetaInfoMap(startpage, defaultValue=0), 
-        'gb-obc-gamma'       : MetaInfoMap(startpage, defaultValue=0), 
-        'gb-dielectric-offset' : MetaInfoMap(startpage, defaultValue=0), 
-        'sa-algorithm'       : MetaInfoMap(startpage, defaultValue=0), 
-        'sa-surface-tension' : MetaInfoMap(startpage, defaultValue=0), 
-        'tcoupl'             : MetaInfoMap(startpage, defaultValue=0), 
-        'nsttcouple'         : MetaInfoMap(startpage, defaultValue=0), 
-        'nh-chain-length'    : MetaInfoMap(startpage, defaultValue=0), 
-        'print-nose-hoover-chain-variables' : MetaInfoMap(startpage, defaultValue=0), 
-        'pcoupl'             : MetaInfoMap(startpage, defaultValue=0), 
-        'pcoupltype'         : MetaInfoMap(startpage, defaultValue=0), 
-        'nstpcouple'         : MetaInfoMap(startpage, defaultValue=0), 
-        'tau-p'              : MetaInfoMap(startpage, defaultValue=0), 
+        'dt'                 : MetaInfoMap(startpage, defaultValue=0.0001),
+        'nsteps'             : MetaInfoMap(startpage, defaultValue=0),
+        'init-step'          : MetaInfoMap(startpage, defaultValue=0),
+        'simulation-part'    : MetaInfoMap(startpage, defaultValue=0),
+        'comm-mode'          : MetaInfoMap(startpage, defaultValue=0),
+        'nstcomm'            : MetaInfoMap(startpage, defaultValue=0),
+        'bd-fric'            : MetaInfoMap(startpage, defaultValue=0),
+        'ld-seed'            : MetaInfoMap(startpage, defaultValue=0),
+        'emtol'              : MetaInfoMap(startpage, defaultValue=0),
+        'emstep'             : MetaInfoMap(startpage, defaultValue=0),
+        'niter'              : MetaInfoMap(startpage, defaultValue=0),
+        'fcstep'             : MetaInfoMap(startpage, defaultValue=0),
+        'nstcgsteep'         : MetaInfoMap(startpage, defaultValue=0),
+        'nbfgscorr'          : MetaInfoMap(startpage, defaultValue=0),
+        'rtpi'               : MetaInfoMap(startpage, defaultValue=0),
+        'nstxout'            : MetaInfoMap(startpage, defaultValue=0),
+        'nstvout'            : MetaInfoMap(startpage, defaultValue=0),
+        'nstfout'            : MetaInfoMap(startpage, defaultValue=0),
+        'nstlog'             : MetaInfoMap(startpage, defaultValue=0),
+        'nstcalcenergy'      : MetaInfoMap(startpage, defaultValue=0),
+        'nstenergy'          : MetaInfoMap(startpage, defaultValue=0),
+        'nstxout-compressed' : MetaInfoMap(startpage, defaultValue=0),
+        'compressed-x-precision' : MetaInfoMap(startpage, defaultValue=0),
+        'cutoff-scheme'      : MetaInfoMap(startpage, defaultValue=0),
+        'nstlist'            : MetaInfoMap(startpage, defaultValue=0),
+        'ns-type'            : MetaInfoMap(startpage, defaultValue=0),
+        'pbc'                : MetaInfoMap(startpage, defaultValue=0),
+        'periodic-molecules' : MetaInfoMap(startpage, defaultValue=0),
+        'verlet-buffer-tolerance': MetaInfoMap(startpage, defaultValue=0),
+        'rlist'              : MetaInfoMap(startpage, defaultValue=0),
+        'rlistlong'          : MetaInfoMap(startpage, defaultValue=0),
+        'nstcalclr'          : MetaInfoMap(startpage, defaultValue=0),
+        'coulombtype'        : MetaInfoMap(startpage, defaultValue=0),
+        'coulomb-modifier'   : MetaInfoMap(startpage, defaultValue=0),
+        'rcoulomb-switch'    : MetaInfoMap(startpage, defaultValue=0),
+        'rcoulomb'           : MetaInfoMap(startpage, defaultValue=0),
+        'epsilon-r'          : MetaInfoMap(startpage, defaultValue=0),
+        'epsilon-rf'         : MetaInfoMap(startpage, defaultValue=0),
+        'vdw-type'           : MetaInfoMap(startpage, defaultValue=0),
+        'vdw-modifier'       : MetaInfoMap(startpage, defaultValue=0),
+        'rvdw-switch'        : MetaInfoMap(startpage, defaultValue=0),
+        'rvdw'               : MetaInfoMap(startpage, defaultValue=0),
+        'DispCorr'           : MetaInfoMap(startpage, defaultValue=0),
+        'table-extension'    : MetaInfoMap(startpage, defaultValue=0),
+        'fourierspacing'     : MetaInfoMap(startpage, defaultValue=0),
+        'fourier-nx'         : MetaInfoMap(startpage, defaultValue=0),
+        'fourier-ny'         : MetaInfoMap(startpage, defaultValue=0),
+        'fourier-nz'         : MetaInfoMap(startpage, defaultValue=0),
+        'pme-order'          : MetaInfoMap(startpage, defaultValue=0),
+        'ewald-rtol'         : MetaInfoMap(startpage, defaultValue=0),
+        'ewald-rtol-lj'      : MetaInfoMap(startpage, defaultValue=0),
+        'lj-pme-comb-rule'   : MetaInfoMap(startpage, defaultValue=0),
+        'ewald-geometry'     : MetaInfoMap(startpage, defaultValue=0),
+        'epsilon-surface'    : MetaInfoMap(startpage, defaultValue=0),
+        'implicit-solvent'   : MetaInfoMap(startpage, defaultValue=0),
+        'gb-algorithm'       : MetaInfoMap(startpage, defaultValue=0),
+        'nstgbradii'         : MetaInfoMap(startpage, defaultValue=0),
+        'rgbradii'           : MetaInfoMap(startpage, defaultValue=0),
+        'gb-epsilon-solvent' : MetaInfoMap(startpage, defaultValue=0),
+        'gb-saltconc'        : MetaInfoMap(startpage, defaultValue=0),
+        'gb-obc-alpha'       : MetaInfoMap(startpage, defaultValue=0),
+        'gb-obc-beta'        : MetaInfoMap(startpage, defaultValue=0),
+        'gb-obc-gamma'       : MetaInfoMap(startpage, defaultValue=0),
+        'gb-dielectric-offset' : MetaInfoMap(startpage, defaultValue=0),
+        'sa-algorithm'       : MetaInfoMap(startpage, defaultValue=0),
+        'sa-surface-tension' : MetaInfoMap(startpage, defaultValue=0),
+        'tcoupl'             : MetaInfoMap(startpage, defaultValue=0),
+        'nsttcouple'         : MetaInfoMap(startpage, defaultValue=0),
+        'nh-chain-length'    : MetaInfoMap(startpage, defaultValue=0),
+        'print-nose-hoover-chain-variables' : MetaInfoMap(startpage, defaultValue=0),
+        'pcoupl'             : MetaInfoMap(startpage, defaultValue=0),
+        'pcoupltype'         : MetaInfoMap(startpage, defaultValue=0),
+        'nstpcouple'         : MetaInfoMap(startpage, defaultValue=0),
+        'tau-p'              : MetaInfoMap(startpage, defaultValue=0),
         'compressibility\[    0\]' : MetaInfoMap(startpage, defaultValue=0,
-                replaceDict = {'{' : '[', '}' : ']'}, 
+                replaceDict = {'{' : '[', '}' : ']'},
                 subFunc=lambda x: np.asarray(
-                    self.literal_eval(x)) if x is not None else None), 
-        'compressibility\[    1\]' : MetaInfoMap(startpage, defaultValue=0, 
-                replaceDict = {'{' : '[', '}' : ']'}, 
+                    self.literal_eval(x)) if x is not None else None),
+        'compressibility\[    1\]' : MetaInfoMap(startpage, defaultValue=0,
+                replaceDict = {'{' : '[', '}' : ']'},
                 subFunc=lambda x: np.asarray(
-                    self.literal_eval(x)) if x is not None else None), 
-        'compressibility\[    2\]' : MetaInfoMap(startpage, defaultValue=0, 
-                replaceDict = {'{' : '[', '}' : ']'}, 
+                    self.literal_eval(x)) if x is not None else None),
+        'compressibility\[    2\]' : MetaInfoMap(startpage, defaultValue=0,
+                replaceDict = {'{' : '[', '}' : ']'},
                 subFunc=lambda x: np.asarray(
-                    self.literal_eval(x)) if x is not None else None), 
-        'ref-p\[    0\]'       : MetaInfoMap(startpage, defaultValue=0, 
-                replaceDict = {'{' : '[', '}' : ']'}, 
+                    self.literal_eval(x)) if x is not None else None),
+        'ref-p\[    0\]'       : MetaInfoMap(startpage, defaultValue=0,
+                replaceDict = {'{' : '[', '}' : ']'},
                 subFunc=lambda x: np.asarray(
-                    self.literal_eval(x)) if x is not None else None), 
-        'ref-p\[    1\]'       : MetaInfoMap(startpage, defaultValue=0, 
-                replaceDict = {'{' : '[', '}' : ']'}, 
+                    self.literal_eval(x)) if x is not None else None),
+        'ref-p\[    1\]'       : MetaInfoMap(startpage, defaultValue=0,
+                replaceDict = {'{' : '[', '}' : ']'},
                 subFunc=lambda x: np.asarray(
-                    self.literal_eval(x)) if x is not None else None), 
-        'ref-p\[    2\]'       : MetaInfoMap(startpage, defaultValue=0, 
-                replaceDict = {'{' : '[', '}' : ']'}, 
+                    self.literal_eval(x)) if x is not None else None),
+        'ref-p\[    2\]'       : MetaInfoMap(startpage, defaultValue=0,
+                replaceDict = {'{' : '[', '}' : ']'},
                 subFunc=lambda x: np.asarray(
-                    self.literal_eval(x)) if x is not None else None), 
-        'refcoord-scaling'   : MetaInfoMap(startpage, defaultValue=0), 
-        'posres-com\[0\]'      : MetaInfoMap(startpage, defaultValue=0), 
-        'posres-com\[1\]'      : MetaInfoMap(startpage, defaultValue=0), 
-        'posres-com\[2\]'      : MetaInfoMap(startpage, defaultValue=0), 
-        'posres-comB\[0\]'     : MetaInfoMap(startpage, defaultValue=0), 
-        'posres-comB\[1\]'     : MetaInfoMap(startpage, defaultValue=0), 
-        'posres-comB\[2\]'     : MetaInfoMap(startpage, defaultValue=0), 
-        'QMMM'               : MetaInfoMap(startpage, defaultValue=0), 
-        'QMconstraints'      : MetaInfoMap(startpage, defaultValue=0), 
-        'QMMMscheme'         : MetaInfoMap(startpage, defaultValue=0), 
-        'MMChargeScaleFactor' : MetaInfoMap(startpage, defaultValue=0), 
+                    self.literal_eval(x)) if x is not None else None),
+        'refcoord-scaling'   : MetaInfoMap(startpage, defaultValue=0),
+        'posres-com\[0\]'      : MetaInfoMap(startpage, defaultValue=0),
+        'posres-com\[1\]'      : MetaInfoMap(startpage, defaultValue=0),
+        'posres-com\[2\]'      : MetaInfoMap(startpage, defaultValue=0),
+        'posres-comB\[0\]'     : MetaInfoMap(startpage, defaultValue=0),
+        'posres-comB\[1\]'     : MetaInfoMap(startpage, defaultValue=0),
+        'posres-comB\[2\]'     : MetaInfoMap(startpage, defaultValue=0),
+        'QMMM'               : MetaInfoMap(startpage, defaultValue=0),
+        'QMconstraints'      : MetaInfoMap(startpage, defaultValue=0),
+        'QMMMscheme'         : MetaInfoMap(startpage, defaultValue=0),
+        'MMChargeScaleFactor' : MetaInfoMap(startpage, defaultValue=0),
         }
 
     qmlist = {
-        'ngQM' : MetaInfoMap(startpage, defaultValue=0), 
-        'constraint-algorithm' : MetaInfoMap(startpage, defaultValue=0), 
-        'continuation' : MetaInfoMap(startpage, defaultValue=0), 
-        'Shake-SOR' : MetaInfoMap(startpage, defaultValue=0), 
-        'shake-tol' : MetaInfoMap(startpage, defaultValue=0), 
-        'lincs-order' : MetaInfoMap(startpage, defaultValue=0), 
-        'lincs-iter' : MetaInfoMap(startpage, defaultValue=0), 
-        'lincs-warnangle' : MetaInfoMap(startpage, defaultValue=0), 
-        'nwall' : MetaInfoMap(startpage, defaultValue=0), 
-        'wall-type' : MetaInfoMap(startpage, defaultValue=0), 
-        'wall-r-linpot' : MetaInfoMap(startpage, defaultValue=0), 
-        'wall-atomtype\[0\]' : MetaInfoMap(startpage, defaultValue=0), 
-        'wall-atomtype\[1\]' : MetaInfoMap(startpage, defaultValue=0), 
-        'wall-density\[0\]' : MetaInfoMap(startpage, defaultValue=0), 
-        'wall-density\[1\]' : MetaInfoMap(startpage, defaultValue=0), 
-        'wall-ewald-zfac' : MetaInfoMap(startpage, defaultValue=0), 
-        'pull' : MetaInfoMap(startpage, defaultValue=0), 
-        'rotation' : MetaInfoMap(startpage, defaultValue=0), 
-        'interactiveMD' : MetaInfoMap(startpage, defaultValue=0), 
-        'disre' : MetaInfoMap(startpage, defaultValue=0), 
-        'disre-weighting' : MetaInfoMap(startpage, defaultValue=0), 
-        'disre-mixed' : MetaInfoMap(startpage, defaultValue=0), 
-        'dr-fc' : MetaInfoMap(startpage, defaultValue=0), 
-        'dr-tau' : MetaInfoMap(startpage, defaultValue=0), 
-        'nstdisreout' : MetaInfoMap(startpage, defaultValue=0), 
-        'orire-fc' : MetaInfoMap(startpage, defaultValue=0), 
-        'orire-tau' : MetaInfoMap(startpage, defaultValue=0), 
-        'nstorireout' : MetaInfoMap(startpage, defaultValue=0), 
-        'free-energy' : MetaInfoMap(startpage, defaultValue=0), 
-        'cos-acceleration' : MetaInfoMap(startpage, defaultValue=0), 
-        'deform\[    0\]' : MetaInfoMap(startpage, defaultValue=0, 
-                replaceDict = {'{' : '[', '}' : ']'}, 
+        'ngQM' : MetaInfoMap(startpage, defaultValue=0),
+        'constraint-algorithm' : MetaInfoMap(startpage, defaultValue=0),
+        'continuation' : MetaInfoMap(startpage, defaultValue=0),
+        'Shake-SOR' : MetaInfoMap(startpage, defaultValue=0),
+        'shake-tol' : MetaInfoMap(startpage, defaultValue=0),
+        'lincs-order' : MetaInfoMap(startpage, defaultValue=0),
+        'lincs-iter' : MetaInfoMap(startpage, defaultValue=0),
+        'lincs-warnangle' : MetaInfoMap(startpage, defaultValue=0),
+        'nwall' : MetaInfoMap(startpage, defaultValue=0),
+        'wall-type' : MetaInfoMap(startpage, defaultValue=0),
+        'wall-r-linpot' : MetaInfoMap(startpage, defaultValue=0),
+        'wall-atomtype\[0\]' : MetaInfoMap(startpage, defaultValue=0),
+        'wall-atomtype\[1\]' : MetaInfoMap(startpage, defaultValue=0),
+        'wall-density\[0\]' : MetaInfoMap(startpage, defaultValue=0),
+        'wall-density\[1\]' : MetaInfoMap(startpage, defaultValue=0),
+        'wall-ewald-zfac' : MetaInfoMap(startpage, defaultValue=0),
+        'pull' : MetaInfoMap(startpage, defaultValue=0),
+        'rotation' : MetaInfoMap(startpage, defaultValue=0),
+        'interactiveMD' : MetaInfoMap(startpage, defaultValue=0),
+        'disre' : MetaInfoMap(startpage, defaultValue=0),
+        'disre-weighting' : MetaInfoMap(startpage, defaultValue=0),
+        'disre-mixed' : MetaInfoMap(startpage, defaultValue=0),
+        'dr-fc' : MetaInfoMap(startpage, defaultValue=0),
+        'dr-tau' : MetaInfoMap(startpage, defaultValue=0),
+        'nstdisreout' : MetaInfoMap(startpage, defaultValue=0),
+        'orire-fc' : MetaInfoMap(startpage, defaultValue=0),
+        'orire-tau' : MetaInfoMap(startpage, defaultValue=0),
+        'nstorireout' : MetaInfoMap(startpage, defaultValue=0),
+        'free-energy' : MetaInfoMap(startpage, defaultValue=0),
+        'cos-acceleration' : MetaInfoMap(startpage, defaultValue=0),
+        'deform\[    0\]' : MetaInfoMap(startpage, defaultValue=0,
+                replaceDict = {'{' : '[', '}' : ']'},
                 subFunc=lambda x: np.asarray(
-                    self.literal_eval(x)) if x is not None else None), 
-        'deform\[    1\]' : MetaInfoMap(startpage, defaultValue=0, 
-                replaceDict = {'{' : '[', '}' : ']'}, 
+                    self.literal_eval(x)) if x is not None else None),
+        'deform\[    1\]' : MetaInfoMap(startpage, defaultValue=0,
+                replaceDict = {'{' : '[', '}' : ']'},
                 subFunc=lambda x: np.asarray(
-                    self.literal_eval(x)) if x is not None else None), 
-        'deform\[    2\]' : MetaInfoMap(startpage, defaultValue=0, 
-                replaceDict = {'{' : '[', '}' : ']'}, 
+                    self.literal_eval(x)) if x is not None else None),
+        'deform\[    2\]' : MetaInfoMap(startpage, defaultValue=0,
+                replaceDict = {'{' : '[', '}' : ']'},
                 subFunc=lambda x: np.asarray(
-                    self.literal_eval(x)) if x is not None else None), 
-        'simulated-tempering' : MetaInfoMap(startpage, defaultValue=0), 
-        'E-x' : MetaInfoMap(startpage, defaultValue=0, nextMatch='n', concatMatch=True), 
-        'E-xt' : MetaInfoMap(startpage, defaultValue=0, nextMatch='n', concatMatch=True), 
-        'E-y' : MetaInfoMap(startpage, defaultValue=0, nextMatch='n', concatMatch=True), 
-        'E-yt' : MetaInfoMap(startpage, defaultValue=0, nextMatch='n', concatMatch=True), 
-        'E-z' : MetaInfoMap(startpage, defaultValue=0, nextMatch='n', concatMatch=True), 
-        'E-zt' : MetaInfoMap(startpage, defaultValue=0, nextMatch='n', concatMatch=True), 
-        'swapcoords' : MetaInfoMap(startpage, defaultValue=0), 
-        'adress' : MetaInfoMap(startpage, defaultValue=0), 
-        'userint1' : MetaInfoMap(startpage, defaultValue=0), 
-        'userint2' : MetaInfoMap(startpage, defaultValue=0), 
-        'userint3' : MetaInfoMap(startpage, defaultValue=0), 
-        'userint4' : MetaInfoMap(startpage, defaultValue=0), 
-        'userreal1' : MetaInfoMap(startpage, defaultValue=0), 
-        'userreal2' : MetaInfoMap(startpage, defaultValue=0), 
-        'userreal3' : MetaInfoMap(startpage, defaultValue=0), 
-        'userreal4' : MetaInfoMap(startpage, defaultValue=0), 
+                    self.literal_eval(x)) if x is not None else None),
+        'simulated-tempering' : MetaInfoMap(startpage, defaultValue=0),
+        'E-x' : MetaInfoMap(startpage, defaultValue=0, nextMatch='n', concatMatch=True),
+        'E-xt' : MetaInfoMap(startpage, defaultValue=0, nextMatch='n', concatMatch=True),
+        'E-y' : MetaInfoMap(startpage, defaultValue=0, nextMatch='n', concatMatch=True),
+        'E-yt' : MetaInfoMap(startpage, defaultValue=0, nextMatch='n', concatMatch=True),
+        'E-z' : MetaInfoMap(startpage, defaultValue=0, nextMatch='n', concatMatch=True),
+        'E-zt' : MetaInfoMap(startpage, defaultValue=0, nextMatch='n', concatMatch=True),
+        'swapcoords' : MetaInfoMap(startpage, defaultValue=0),
+        'adress' : MetaInfoMap(startpage, defaultValue=0),
+        'userint1' : MetaInfoMap(startpage, defaultValue=0),
+        'userint2' : MetaInfoMap(startpage, defaultValue=0),
+        'userint3' : MetaInfoMap(startpage, defaultValue=0),
+        'userint4' : MetaInfoMap(startpage, defaultValue=0),
+        'userreal1' : MetaInfoMap(startpage, defaultValue=0),
+        'userreal2' : MetaInfoMap(startpage, defaultValue=0),
+        'userreal3' : MetaInfoMap(startpage, defaultValue=0),
+        'userreal4' : MetaInfoMap(startpage, defaultValue=0),
         }
-    
+
     grplist = {
-        'nrdf' : MetaInfoMap(startpage, defaultValue=0), 
-        'ref-t' : MetaInfoMap(startpage, defaultValue=0), 
-        'tau-t' : MetaInfoMap(startpage, defaultValue=0), 
+        'nrdf' : MetaInfoMap(startpage, defaultValue=0),
+        'ref-t' : MetaInfoMap(startpage, defaultValue=0),
+        'tau-t' : MetaInfoMap(startpage, defaultValue=0),
         }
 
     anneallist = {
-        'annealing' : MetaInfoMap(startpage, defaultValue=0), 
-        'annealing-npoints' : MetaInfoMap(startpage, defaultValue=0), 
-        'acc' : MetaInfoMap(startpage, defaultValue=0, 
-            subFunc=lambda x: [float(i) for i in x.split()] if(x is not None and 
-                isinstance(x,str) is True) else None), 
-        'nfreeze' : MetaInfoMap(startpage, defaultValue=0, 
-            subFunc=lambda x: x.split() if(x is not None and 
-                isinstance(x,str) is True) else None), 
-        'energygrp-flags\[  0\]' : MetaInfoMap(startpage, defaultValue=0), 
-        'energygrp-flags\[  1\]' : MetaInfoMap(startpage, defaultValue=0), 
-        'energygrp-flags\[  2\]' : MetaInfoMap(startpage, defaultValue=0), 
+        'annealing' : MetaInfoMap(startpage, defaultValue=0),
+        'annealing-npoints' : MetaInfoMap(startpage, defaultValue=0),
+        'acc' : MetaInfoMap(startpage, defaultValue=0,
+            subFunc=lambda x: [float(i) for i in x.split()] if(x is not None and
+                isinstance(x,str) is True) else None),
+        'nfreeze' : MetaInfoMap(startpage, defaultValue=0,
+            subFunc=lambda x: x.split() if(x is not None and
+                isinstance(x,str) is True) else None),
+        'energygrp-flags\[  0\]' : MetaInfoMap(startpage, defaultValue=0),
+        'energygrp-flags\[  1\]' : MetaInfoMap(startpage, defaultValue=0),
+        'energygrp-flags\[  2\]' : MetaInfoMap(startpage, defaultValue=0),
         }
-    
+
     startpage.update({
         'nameTranslate'   : metaNameConverter_UnderscoreSpaceDash,
         'metaNameTag'     : 'parm'
         })
     parmlist = {
-        'Domain Decomposition on' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Domain Decomposition Ranks', matchWith='EOL'), 
-        'Dynamic load balancing' : MetaInfoMap(startpage, defaultValue=0), 
-        '\(option -dds\)' : MetaInfoMap(startpage, defaultValue=0, matchWith='NW'), 
-        'Optimizing the DD grid for' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Number of cells'), 
-        'with a minimum initial size of' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Min init size cells', matchWith='EOL'), 
-        'Domain decomposition grid' : MetaInfoMap(startpage, defaultValue=0), 
-        'separate PME ranks' : MetaInfoMap(startpage, defaultValue=0), 
-        'Domain decomposition rank' : MetaInfoMap(startpage, defaultValue=0), 
-        'coordinates' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Domain Decomposition coordinates'), 
-        'Table routines are used for coulomb' : MetaInfoMap(startpage, defaultValue=0, replaceTag='use coulomb tables'), 
-        'Table routines are used for vdw' : MetaInfoMap(startpage, defaultValue=0, replaceTag='use vdw tables'), 
-        'NS' : MetaInfoMap(startpage, defaultValue=0, alsoMatch=["Cut-off's:"], replaceTag='cutoff ns'), 
-        'Coulomb' : MetaInfoMap(startpage, defaultValue=0, alsoMatch=["Cut-off's:"], replaceTag='cutoff coulomb'), 
-        'LJ' : MetaInfoMap(startpage, defaultValue=0, alsoMatch=["Cut-off's:"], replaceTag='cutoff lj'), 
-        'System total charge' : MetaInfoMap(startpage, defaultValue=0), 
-        'data points for 1-4 COUL' : MetaInfoMap(startpage, defaultValue=0, matchWith='PW'), 
-        'data points for 1-4 LJ6' : MetaInfoMap(startpage, defaultValue=0, matchWith='PW'), 
-        'data points for 1-4 LJ12' : MetaInfoMap(startpage, defaultValue=0, matchWith='PW'), 
-        'Potential shift: LJ r\^-12:' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Potential shift LJ r12'), 
-        'r\^-6:' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Potential shift LJ r6'), 
-        ', Coulomb' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Potential shift Coulomb'), 
-        'Initializing Parallel LINear Constraint' : MetaInfoMap(startpage, defaultValue='yes', changeTags={'PLINCS' : 'Yes'}, mute=True), 
-        'PLINCS' : MetaInfoMap(startpage, ignoreMatch=True), 
-        'number of constraints is' : MetaInfoMap(startpage, defaultValue=0, removeText=' is'), 
-        'domain decomposition cell size is' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Min size cells'), 
-        'shrink of DD cells \(option -dds\) is' : MetaInfoMap(startpage, defaultValue=0, removeText=' \(option -dds\) is'), 
-        'allowed shrink of domain decomposition cells is' : MetaInfoMap(startpage, defaultValue=0, removeText=' is'), 
-        'non-bonded interactions' : MetaInfoMap(startpage, defaultValue=0), 
-        'two-body bonded interactions  \(-rdd\)' : MetaInfoMap(startpage, defaultValue=0, replaceTag='two-body bonded interactions'), 
-        'multi-body bonded interactions  \(-rdd\)' : MetaInfoMap(startpage, defaultValue=0, replaceTag='multi-body bonded interactions'), 
-        'atoms separated by up to 4 constraints  \(-rcon\)' : MetaInfoMap(startpage, defaultValue=0, replaceTag='atoms separated 4 constraints'), 
-        'domain decomposition grid' : MetaInfoMap(startpage, defaultValue=0), 
-        'Center of mass motion removal mode is' : MetaInfoMap(startpage, defaultValue=0, removeText=' is'), 
-        'Atom distribution over' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Atom distribution domains'), 
-        'Grid' : MetaInfoMap(startpage, defaultValue=0), 
-        'Initial temperature' : MetaInfoMap(startpage, defaultValue=0), 
+        'Domain Decomposition on' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Domain Decomposition Ranks', matchWith='EOL'),
+        'Dynamic load balancing' : MetaInfoMap(startpage, defaultValue=0),
+        '\(option -dds\)' : MetaInfoMap(startpage, defaultValue=0, matchWith='NW'),
+        'Optimizing the DD grid for' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Number of cells'),
+        'with a minimum initial size of' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Min init size cells', matchWith='EOL'),
+        'Domain decomposition grid' : MetaInfoMap(startpage, defaultValue=0),
+        'separate PME ranks' : MetaInfoMap(startpage, defaultValue=0),
+        'Domain decomposition rank' : MetaInfoMap(startpage, defaultValue=0),
+        'coordinates' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Domain Decomposition coordinates'),
+        'Table routines are used for coulomb' : MetaInfoMap(startpage, defaultValue=0, replaceTag='use coulomb tables'),
+        'Table routines are used for vdw' : MetaInfoMap(startpage, defaultValue=0, replaceTag='use vdw tables'),
+        'NS' : MetaInfoMap(startpage, defaultValue=0, alsoMatch=["Cut-off's:"], replaceTag='cutoff ns'),
+        'Coulomb' : MetaInfoMap(startpage, defaultValue=0, alsoMatch=["Cut-off's:"], replaceTag='cutoff coulomb'),
+        'LJ' : MetaInfoMap(startpage, defaultValue=0, alsoMatch=["Cut-off's:"], replaceTag='cutoff lj'),
+        'System total charge' : MetaInfoMap(startpage, defaultValue=0),
+        'data points for 1-4 COUL' : MetaInfoMap(startpage, defaultValue=0, matchWith='PW'),
+        'data points for 1-4 LJ6' : MetaInfoMap(startpage, defaultValue=0, matchWith='PW'),
+        'data points for 1-4 LJ12' : MetaInfoMap(startpage, defaultValue=0, matchWith='PW'),
+        'Potential shift: LJ r\^-12:' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Potential shift LJ r12'),
+        'r\^-6:' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Potential shift LJ r6'),
+        ', Coulomb' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Potential shift Coulomb'),
+        'Initializing Parallel LINear Constraint' : MetaInfoMap(startpage, defaultValue='yes', changeTags={'PLINCS' : 'Yes'}, mute=True),
+        'PLINCS' : MetaInfoMap(startpage, ignoreMatch=True),
+        'number of constraints is' : MetaInfoMap(startpage, defaultValue=0, removeText=' is'),
+        'domain decomposition cell size is' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Min size cells'),
+        'shrink of DD cells \(option -dds\) is' : MetaInfoMap(startpage, defaultValue=0, removeText=' \(option -dds\) is'),
+        'allowed shrink of domain decomposition cells is' : MetaInfoMap(startpage, defaultValue=0, removeText=' is'),
+        'non-bonded interactions' : MetaInfoMap(startpage, defaultValue=0),
+        'two-body bonded interactions  \(-rdd\)' : MetaInfoMap(startpage, defaultValue=0, replaceTag='two-body bonded interactions'),
+        'multi-body bonded interactions  \(-rdd\)' : MetaInfoMap(startpage, defaultValue=0, replaceTag='multi-body bonded interactions'),
+        'atoms separated by up to 4 constraints  \(-rcon\)' : MetaInfoMap(startpage, defaultValue=0, replaceTag='atoms separated 4 constraints'),
+        'domain decomposition grid' : MetaInfoMap(startpage, defaultValue=0),
+        'Center of mass motion removal mode is' : MetaInfoMap(startpage, defaultValue=0, removeText=' is'),
+        'Atom distribution over' : MetaInfoMap(startpage, defaultValue=0, replaceTag='Atom distribution domains'),
+        'Grid' : MetaInfoMap(startpage, defaultValue=0),
+        'Initial temperature' : MetaInfoMap(startpage, defaultValue=0),
         }
 
     startpage.update({
@@ -470,9 +469,9 @@ def get_nameListDict(self, deflist):
         'activeSections'  : ['section_single_configuration_calculation']
         })
     # Additional dictionary to store stepping parameters
-    # such as output log frequency, trajectory writing 
-    # freuquency and the actually needed number of 
-    # section_single_configuration_calculation 
+    # such as output log frequency, trajectory writing
+    # freuquency and the actually needed number of
+    # section_single_configuration_calculation
     #stepcontrol = {
     #    'logsteps'       : MetaInfoMap(startpage),
     #    'trajsteps'      : MetaInfoMap(startpage),
@@ -520,7 +519,7 @@ def set_Dictionaries(self):
         self.stepcontrolDict = {
             'logsteps'       : None,
             'nextlogsteps'   : None,
-            'trajsteps'      : None, 
+            'trajsteps'      : None,
             'enersteps'      : None,
             'steps'          : None,
             'follow'         : None,
@@ -538,12 +537,12 @@ def set_Dictionaries(self):
             'edr'    : self.edrDict,
             'extra'  : self.extraDict,
             }
-        self.sectionDict = { 
-                'section' : { 
-                    "metaNameTag"      : ['input_output_files', 
-                                          'control_parameters'], 
-                    "listTypStr"       : 'type_section', 
-                    "repeatingSection" : False, 
+        self.sectionDict = {
+                'section' : {
+                    "metaNameTag"      : ['input_output_files',
+                                          'control_parameters'],
+                    "listTypStr"       : 'type_section',
+                    "repeatingSection" : False,
                     "supraNames"       : ["section_run"]
                     }
                 }
@@ -566,7 +565,7 @@ def get_updateDictionary(self, defname):
             if(st is not None and isinstance(st, str)):
                 if("[" in st or "(" in st):
                     val.append(list(storedtext))
-        if val: 
+        if val:
             return False, np.linalg.norm(np.asarray(val)), itemdict
         else:
             return False, itemdict["value"], itemdict
@@ -581,62 +580,62 @@ def get_updateDictionary(self, defname):
     # ---------------------------------------------------------------
     #   Definitions of meta data values for section_sampling_method
     # ---------------------------------------------------------------
-    sampling = { 
+    sampling = {
         'ensemble_type' : MetaInfoMap(startpage, activeInfo=True,
             depends=[
                 {'test' : [['integrator', ' in [\"steep\",'
                                           '\"cg\",'
-                                          '\"l-bfgs\"]']], 
+                                          '\"l-bfgs\"]']],
                  'assign' : 'minimization'},
                 {'test' : [['integrator', ' in [\"md\",'
                                           '\"md-vv\",'
                                           '\"sd\",'
                                           '\"sd2\",'
-                                          '\"md-vv-avek\"]'], 
-                           ['tcoupl', ' in [\"no\",\"No\",\"NO\"]']], 
+                                          '\"md-vv-avek\"]'],
+                           ['tcoupl', ' in [\"no\",\"No\",\"NO\"]']],
                  'assign' : 'NVE'},
                 {'test' : [['integrator', ' in [\"md\",'
                                           '\"sd\",'
                                           '\"sd2\",'
                                           '\"md-vv\",'
-                                          '\"md-vv-avek\"]'], 
+                                          '\"md-vv-avek\"]'],
                            ['tcouple', ' in [\"berendsen\",'
                                        '\"nose-hoover\",'
                                        '\"andersen\",'
                                        '\"anderson-massive\",'
-                                       '\"v-rescale\"]'], 
-                           ['pcoupl', ' in [\"no\",\"No\",\"NO\"]']], 
+                                       '\"v-rescale\"]'],
+                           ['pcoupl', ' in [\"no\",\"No\",\"NO\"]']],
                  'assign' : 'NVT'},
                 {'test' : [['integrator', ' in [\"md\",'
                                           '\"sd\",'
                                           '\"sd2\",'
                                           '\"md-vv\",'
-                                          '\"md-vv-avek\"]'], 
+                                          '\"md-vv-avek\"]'],
                            ['tcouple', ' in [\"berendsen\",'
                                        '\"nose-hoover\",'
                                        '\"andersen\",'
                                        '\"anderson-massive\",'
-                                       '\"v-rescale\"]'], 
+                                       '\"v-rescale\"]'],
                            ['pcoupl', ' in [\"berendsen\",'
-                                      '\"Parinello-Rahman\"]']], 
+                                      '\"Parinello-Rahman\"]']],
                  'assign' : 'NPT'},
                 {'test' : [['integrator', '== \"bd\"']],
                  'assign' : 'Langevin'}
                 ],
             lookupdict=self.cntrlDict
             ),
-        'sampling_method' : MetaInfoMap(startpage, activeInfo=True, 
+        'sampling_method' : MetaInfoMap(startpage, activeInfo=True,
             depends=[
                 {'test' : [['integrator', ' in [\"steep\",'
                                           '\"cg\",'
-                                          '\"l-bfgs\"]']], 
+                                          '\"l-bfgs\"]']],
                  'assign' : 'geometry_optimization'},
                 {'test' : [['integrator', ' in [\"md\",'
                                           '\"sd\",'
                                           '\"sd2\",'
                                           '\"bd\",'
                                           '\"md-vv\",'
-                                          '\"md-vv-avek\"]']], 
+                                          '\"md-vv-avek\"]']],
                  'assign' : 'molecular_dynamics'}
                 ],
             lookupdict=self.cntrlDict
@@ -654,11 +653,11 @@ def get_updateDictionary(self, defname):
 #       'geometry_optimization_geometry_change' : MetaInfoMap(startpage),
         'geometry_optimization_method' : MetaInfoMap(startpage,
             depends=[
-                {'test' : [['integrator', '== \"steep\"']], 
+                {'test' : [['integrator', '== \"steep\"']],
                  'assign' : 'SD'},
-                {'test' : [['integrator', '== \"cg\"']], 
+                {'test' : [['integrator', '== \"cg\"']],
                  'assign' : 'CG'},
-                {'test' : [['integrator', '== \"l-bfgs\"']], 
+                {'test' : [['integrator', '== \"l-bfgs\"']],
                  'assign' : 'L-BFGS'},
                 ],
             lookupdict=self.cntrlDict,
@@ -672,7 +671,7 @@ def get_updateDictionary(self, defname):
                                           '\"sd2\",'
                                           '\"bd\",'
                                           '\"md-vv\",'
-                                          '\"md-vv-avek\"]'], 
+                                          '\"md-vv-avek\"]'],
                            ['pcoupl', '== \"berendsen\"']],
                  'assign' : 'Berendsen'},
                 {'test' : [['integrator', ' in [\"md\",'
@@ -680,9 +679,9 @@ def get_updateDictionary(self, defname):
                                           '\"sd2\",'
                                           '\"bd\",'
                                           '\"md-vv\",'
-                                          '\"md-vv-avek\"]'], 
-                           ['pcoupl', '== \"Parinello-Rahman\"']], 
-                 'assign' : 'Parinello-Rahman'} 
+                                          '\"md-vv-avek\"]'],
+                           ['pcoupl', '== \"Parinello-Rahman\"']],
+                 'assign' : 'Parinello-Rahman'}
                 ],
             lookupdict=self.cntrlDict,
             #autoSections=True,
@@ -696,9 +695,9 @@ def get_updateDictionary(self, defname):
                                           '\"sd2\",'
                                           '\"bd\",'
                                           '\"md-vv\",'
-                                          '\"md-vv-avek\"]'], 
-                           ['pcoupl', 'not in [\"no\",\"No\",\"NO\"]']], 
-                 'value' : 'ref-p\[    0\]'} 
+                                          '\"md-vv-avek\"]'],
+                           ['pcoupl', 'not in [\"no\",\"No\",\"NO\"]']],
+                 'value' : 'ref-p\[    0\]'}
                 ],
             value=(lambda x: np.array(x['val']).flatten().shape[0] if(
                 x is not None and x['val'] is not None) else None)(
@@ -721,9 +720,9 @@ def get_updateDictionary(self, defname):
                                           '\"sd2\",'
                                           '\"bd\",'
                                           '\"md-vv\",'
-                                          '\"md-vv-avek\"]'], 
-                           ['pcoupl', ' not in [\"no\",\"No\",\"NO\"]']], 
-                 'value' : 'tau-p'} 
+                                          '\"md-vv-avek\"]'],
+                           ['pcoupl', ' not in [\"no\",\"No\",\"NO\"]']],
+                 'value' : 'tau-p'}
                 ],
             lookupdict=self.cntrlDict,
             valtype='float',
@@ -739,11 +738,11 @@ def get_updateDictionary(self, defname):
                                           '\"sd\",'
                                           '\"sd2\",'
                                           '\"md-vv\",'
-                                          '\"md-vv-avek\"]']], 
-                 'assign' : 'verlet'}, 
+                                          '\"md-vv-avek\"]']],
+                 'assign' : 'verlet'},
                 {'test' : [['integrator', ' in [\"steep\",'
                                           '\"cg\",'
-                                          '\"l-bfgs\"]']], 
+                                          '\"l-bfgs\"]']],
                  'assign' : 'minimization'},
                 {'test' : [['integrator', '== \"bd\"']],
                  'assign' : 'Langevin'}
@@ -760,7 +759,7 @@ def get_updateDictionary(self, defname):
                                           '\"sd2\",'
                                           '\"bd\",'
                                           '\"md-vv\",'
-                                          '\"md-vv-avek\"]']], 
+                                          '\"md-vv-avek\"]']],
                  'value' : 'dt'}
                 ],
             lookupdict=self.cntrlDict,
@@ -786,41 +785,41 @@ def get_updateDictionary(self, defname):
                                           '\"sd2\",'
                                           '\"bd\",'
                                           '\"md-vv\",'
-                                          '\"md-vv-avek\"]'], 
+                                          '\"md-vv-avek\"]'],
                            ['tcouple', '== \"berendsen\"']],
-                 'assign' : 'Berendsen'}, 
+                 'assign' : 'Berendsen'},
                 {'test' : [['integrator', ' in [\"md\",'
                                           '\"sd\",'
                                           '\"sd2\",'
                                           '\"bd\",'
                                           '\"md-vv\",'
-                                          '\"md-vv-avek\"]'], 
+                                          '\"md-vv-avek\"]'],
                            ['tcouple', '== \"nose-hoover\"']],
-                 'assign' : 'Nose-Hoover'}, 
+                 'assign' : 'Nose-Hoover'},
                 {'test' : [['integrator', ' in [\"md\",'
                                           '\"sd\",'
                                           '\"sd2\",'
                                           '\"bd\",'
                                           '\"md-vv\",'
-                                          '\"md-vv-avek\"]'], 
+                                          '\"md-vv-avek\"]'],
                            ['tcouple', '== \"andersen\"']],
-                 'assign' : 'Andersen'}, 
+                 'assign' : 'Andersen'},
                 {'test' : [['integrator', ' in [\"md\",'
                                           '\"sd\",'
                                           '\"sd2\",'
                                           '\"bd\",'
                                           '\"md-vv\",'
-                                          '\"md-vv-avek\"]'], 
+                                          '\"md-vv-avek\"]'],
                            ['tcouple', '== \"anderson-massive\"']],
-                 'assign' : 'Andersen-Massive'}, 
+                 'assign' : 'Andersen-Massive'},
                 {'test' : [['integrator', ' in [\"md\",'
                                           '\"sd\",'
                                           '\"sd2\",'
                                           '\"bd\",'
                                           '\"md-vv\",'
-                                          '\"md-vv-avek\"]'], 
+                                          '\"md-vv-avek\"]'],
                            ['tcouple', '== \"v-rescale\"']],
-                 'assign' : 'Velocity Rescaling'}, 
+                 'assign' : 'Velocity Rescaling'},
                 ],
             lookupdict=self.cntrlDict,
             #autoSections=True,
@@ -834,8 +833,8 @@ def get_updateDictionary(self, defname):
                                           '\"sd2\",'
                                           '\"bd\",'
                                           '\"md-vv\",'
-                                          '\"md-vv-avek\"]'], 
-                           ['tcoupl', ' not in [\"no\",\"No\",\"NO\"]']], 
+                                          '\"md-vv-avek\"]'],
+                           ['tcoupl', ' not in [\"no\",\"No\",\"NO\"]']],
                  'value' : 'ref-t'}
                 ],
             lookupdict=self.cntrlDict,
@@ -853,9 +852,9 @@ def get_updateDictionary(self, defname):
                                           '\"sd2\",'
                                           '\"bd\",'
                                           '\"md-vv\",'
-                                          '\"md-vv-avek\"]'], 
-                           ['tcoupl', ' not in [\"no\",\"No\",\"NO\"]']], 
-                 'value' : 'tau-t'}, 
+                                          '\"md-vv-avek\"]'],
+                           ['tcoupl', ' not in [\"no\",\"No\",\"NO\"]']],
+                 'value' : 'tau-t'},
                 ],
             lookupdict=self.cntrlDict,
             valtype='float',
@@ -893,7 +892,7 @@ def get_updateDictionary(self, defname):
     # ------------------------------------------------------------
     #   Definitions for section_single_configuration_calculation
     # ------------------------------------------------------------
-    singleconfcalc = { 
+    singleconfcalc = {
         #'atom_forces_type' : MetaInfoMap(startpage,
         #    depends=[{'assign' : 'Force Field'}],
         #    lookupdict=self.mddataDict
@@ -947,13 +946,13 @@ def get_updateDictionary(self, defname):
 #                 'assign' : 'geometry_optimization'},
 #                {'test' : [['integrator', '== \"cg\"']],
 #                 'assign' : 'geometry_optimization'},
-#                {'test' : [['integrator', '== \"l-bfgs\"']], 
+#                {'test' : [['integrator', '== \"l-bfgs\"']],
 #                 'assign' : 'geometry_optimization'},
 #                {'test' : [['integrator', '== \"md\"']],
 #                 'assign' : 'molecular_dynamics'},
 #                {'test' : [['integrator', '== \"md-vv\"']],
 #                 'assign' : 'molecular_dynamics'},
-#                {'test' : [['integrator', '== \"md-vv-avek\"']], 
+#                {'test' : [['integrator', '== \"md-vv-avek\"']],
 #                 'assign' : 'molecular_dynamics'}
 #                ],
 #            activeInfo=True,
@@ -983,11 +982,11 @@ def get_updateDictionary(self, defname):
             activeSections=['section_energy_van_der_Waals']
             ),
         }
-   
+
     # ------------------------------------------
     #   Definitions for section_frame_sequence
     # ------------------------------------------
-    frameseq = { 
+    frameseq = {
         'frame_sequence_conserved_quantity_frames' : MetaInfoMap(startpage,
             depends=[{'store' : 'Step'}],
             valtype='int',
@@ -1238,7 +1237,7 @@ def get_updateDictionary(self, defname):
         #'previous_sequence_ref' : MetaInfoMap(startpage)
         }
 
-    frameseqend = { 
+    frameseqend = {
         'number_of_conserved_quantity_evaluations_in_sequence' : MetaInfoMap(startpage,
             activeInfo=True,
             value=(lambda x: np.array(x['val']).flatten().shape[0] if(
@@ -1446,7 +1445,7 @@ def get_updateDictionary(self, defname):
         'spacegroup_3D_wyckoff' : MetaInfoMap(startpage),
         'symmorphic' : MetaInfoMap(startpage),
         'system_name' : MetaInfoMap(startpage,
-            subfunction={ 
+            subfunction={
                 'function' : MDData.MDDataConverter.topology_system_name,
                 'supportDict' : self.topology.topoDict,
                 },
@@ -1581,7 +1580,7 @@ def get_updateDictionary(self, defname):
         'number_of_atoms_per_molecule_interaction' : MetaInfoMap(startpage),
         'number_of_molecule_interactions' : MetaInfoMap(startpage)
         }
-   
+
     # section_atom_in_molecule of section_molecule_type
     atom_in_mol = {
         'atom_in_molecule_charge' : MetaInfoMap(startpage),
