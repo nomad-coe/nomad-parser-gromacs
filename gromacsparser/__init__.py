@@ -1,1 +1,1 @@
-from .GromacsParser import GromacsParserInterface as GromacsParser
+from .GromacsParser import GromacsParserInterface as GROMACSParser

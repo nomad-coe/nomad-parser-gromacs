@@ -1,11 +1,11 @@
 # Copyright 2016-2018 Berk Onat, Fawzi Mohamed
-# 
+#
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
 #   You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 #   Unless required by applicable law or agreed to in writing, software
 #   distributed under the License is distributed on an "AS IS" BASIS,
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,6 +15,8 @@
 import logging
 import os
 
+import metainfo
+
 PARSERNAME = "GROMACS"
 PROGRAMNAME = "Gromacs"
 PARSERVERSION = "0.0.1"
@@ -22,13 +24,13 @@ PARSERMETANAME = PARSERNAME.lower()
 PARSERTAG = 'x_' + PARSERMETANAME
 
 PARSER_INFO_DEFAULT = {
-        'name'   : PARSERMETANAME+'-parser', 
+        'name'   : PARSERMETANAME+'-parser',
         'version': PARSERVERSION
 }
 
 META_INFO_PATH = os.path.normpath(os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), 
-    "../../../../nomad-meta-info/meta_info/nomad_meta_info/"+PARSERMETANAME+".nomadmetainfo.json"))
+    os.path.dirname(os.path.abspath(metainfo.__file__)),
+    PARSERMETANAME+".nomadmetainfo.json"))
 
 LOGGER = logging.getLogger("nomad."+PROGRAMNAME+"Parser")
 

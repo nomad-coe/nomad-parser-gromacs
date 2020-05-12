@@ -38,6 +38,7 @@ import re
 import sys
 import datetime
 import io
+from nomadcore.simple_parser import mainFunction
 
 ############################################################
 # This is the parser for the main file of Gromacs.
@@ -1141,6 +1142,7 @@ class GromacsParserInterface():
         backend = self.backend_factory("gromacs.nomadmetainfo.json")
         parserInfo = {'name': 'gromacs-parser', 'version': '1.0'}
         context = GromacsParser()
+        context.coverageIgnore = re.compile(r"^(?:" + r"|".join(context.coverageIgnoreList) + r")$")
         with patch.object(sys, 'argv', ['<exe>', '--uri', 'nmd://uri', mainfile]):
             mainFunction(
                 mainFileDescription=context.mainFileDescription(),
