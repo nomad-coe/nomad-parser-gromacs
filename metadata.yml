@@ -1,7 +1,0 @@
-code-label: GROMACS
-code-label-style: All in capitals
-code-url: http://www.gromacs.org/
-parser-dir-name: dependencies/parsers/gromacs/
-parser-git-url: https://gitlab.mpcdf.mpg.de/nomad-lab/parser-gromacs
-parser-specific: ''
-table-of-files: ''
