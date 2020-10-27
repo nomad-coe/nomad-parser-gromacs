@@ -6,6 +6,9 @@ import logging
 import panedr
 import MDAnalysis
 
+from .metainfo import m_env
+from nomad.parsing.parser import FairdiParser
+
 from nomad.parsing.text_parser import UnstructuredTextFileParser, Quantity, FileParser
 from nomad.datamodel.metainfo.public import section_run, section_sampling_method,\
     section_system, section_energy_contribution, section_single_configuration_calculation
@@ -16,7 +19,7 @@ MOL = 6.022140857e+23
 
 
 class GromacsLogParser(UnstructuredTextFileParser):
-    def __init__(self, filepath, logger):
+    def __init__(self):
         run_control = [
             'integrator', 'tinit', 'dt', 'nsteps', 'init-step', 'simulation-part',
             'comm-mode', 'nstcomm', 'comm-grps']
@@ -153,7 +156,7 @@ class GromacsLogParser(UnstructuredTextFileParser):
             electric_fields + mixed_quantum_classical_molecular_dynamics + computational_electrophysiology +\
             density_guided_simulations
 
-        super().__init__(filepath, logger=logger)
+        super().__init__(None)
 
     def init_quantities(self):
         def str_op(val):
@@ -228,8 +231,8 @@ class GromacsLogParser(UnstructuredTextFileParser):
 
 
 class GromacsEDRParser(FileParser):
-    def __init__(self, mainfile, logger):
-        super().__init__(mainfile, logger=logger)
+    def __init__(self):
+        super().__init__(None)
         self._energy_keys = [
             'LJ (SR)', 'Coulomb (SR)', 'Potential', 'Kinetic En.', 'Total Energy',
             'Vir-XX', 'Vir-XY', 'Vir-XZ', 'Vir-YX', 'Vir-YY', 'Vir-YZ', 'Vir-ZX', 'Vir-ZY',
@@ -273,9 +276,8 @@ class GromacsEDRParser(FileParser):
 
 
 class MDAnalysisParser(FileParser):
-    def __init__(self, mainfile, trajectory_file=None, logger=None):
-        super().__init__(mainfile, logger=logger)
-        self._trajectory_file = trajectory_file
+    def __init__(self):
+        super().__init__(None)
 
     @property
     def trajectory_file(self):
@@ -378,17 +380,16 @@ class MDAnalysisParser(FileParser):
         self._results[key] = val
 
 
-class GromacsOutput:
-    def __init__(self, filepath, archive, logger=None):
-        self.filepath = os.path.abspath(filepath)
-        self.archive = archive
-        self.logger = logging if logger is None else logger
-        self.log_parser = GromacsLogParser(filepath, self.logger)
-        self.traj_parser = MDAnalysisParser(None, logger=self.logger)
-        self.energy_parser = GromacsEDRParser(None, self.logger)
-        self._maindir = os.path.dirname(self.filepath)
-        self._gromacs_files = os.listdir(self._maindir)
-        self._basename = os.path.basename(filepath).split('.')[0]
+class GromacsParser(FairdiParser):
+    def __init__(self):
+        super().__init__(
+            name='parsers/gromacs', code_name='Gromacs', code_homepage='http://www.gromacs.org/',
+            domain='dft', mainfile_contents_re=r'gmx mdrun, VERSION')
+        self._metainfo_env = m_env
+
+        self.log_parser = GromacsLogParser()
+        self.traj_parser = MDAnalysisParser()
+        self.energy_parser = GromacsEDRParser()
 
     def get_gromacs_file(self, ext):
         files = [d for d in self._gromacs_files if d.endswith(ext)]
@@ -588,7 +589,22 @@ class GromacsOutput:
             if hasattr(sec_control_parameters, key):
                 setattr(sec_control_parameters, key, str(val))
 
-    def parse(self):
+    def _init_parsers(self):
+        self.log_parser.mainfile = self.filepath
+        self.log_parser.logger = self.logger
+        self.traj_parser.logger = self.logger
+        self.energy_parser.logger = self.logger
+
+    def parse(self, filepath, archive, logger):
+        self.filepath = os.path.abspath(filepath)
+        self.archive = archive
+        self.logger = logging if logger is None else logger
+        self._maindir = os.path.dirname(self.filepath)
+        self._gromacs_files = os.listdir(self._maindir)
+        self._basename = os.path.basename(filepath).split('.')[0]
+
+        self._init_parsers()
+
         sec_run = self.archive.m_create(section_run)
 
         version = self.log_parser.get('GROMACS version', [['VERSION', 'unknown']])[0]
