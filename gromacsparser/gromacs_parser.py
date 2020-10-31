@@ -9,7 +9,7 @@ import MDAnalysis
 from .metainfo import m_env
 from nomad.parsing.parser import FairdiParser
 
-from nomad.parsing.text_parser import UnstructuredTextFileParser, Quantity, FileParser
+from nomad.parsing.file_parser import UnstructuredTextFileParser, Quantity, FileParser
 from nomad.datamodel.metainfo.public import section_run, section_sampling_method,\
     section_system, section_energy_contribution, section_single_configuration_calculation
 from nomad.datamodel.metainfo.common import section_topology, section_interaction
