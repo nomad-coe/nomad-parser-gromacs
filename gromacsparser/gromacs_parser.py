@@ -4,21 +4,24 @@ import pint
 import logging
 
 import panedr
-import MDAnalysis
+try:
+    import MDAnalysis
+except Exception:
+    logging.warn('Required module MDAnalysis not found.')
+    MDAnalysis = False
 
 from .metainfo import m_env
 from nomad.parsing.parser import FairdiParser
 
-from nomad.parsing.file_parser import UnstructuredTextFileParser, Quantity, FileParser
-from nomad.datamodel.metainfo.public import section_run, section_sampling_method,\
-    section_system, section_energy_contribution, section_single_configuration_calculation
-from nomad.datamodel.metainfo.common import section_topology, section_interaction
+from nomad.parsing.file_parser import TextParser, Quantity, FileParser
+from nomad.datamodel.metainfo.common_dft import Run, SamplingMethod, System,\
+    EnergyContribution, SingleConfigurationCalculation, Topology, Interaction
 from .metainfo.gromacs import x_gromacs_section_control_parameters, x_gromacs_section_input_output_files
 
 MOL = 6.022140857e+23
 
 
-class GromacsLogParser(UnstructuredTextFileParser):
+class GromacsLogParser(TextParser):
     def __init__(self):
         run_control = [
             'integrator', 'tinit', 'dt', 'nsteps', 'init-step', 'simulation-part',
@@ -336,6 +339,9 @@ class MDAnalysisParser(FileParser):
         return self._file_handler
 
     def parse(self, key):
+        if not MDAnalysis:
+            return
+
         if self._results is None:
             self._results = dict()
 
@@ -439,19 +445,19 @@ class GromacsParser(FairdiParser):
             else:
                 create_scc = False
 
-        timestep = self.traj_parser.get('timestep', unit='ps')
+        timestep = self.traj_parser.get('timestep', 1.0, unit='ps')
 
         keys = self.energy_parser.get_keys()
         for n in range(n_evaluations):
             if create_scc:
-                sec_scc = sec_run.m_create(section_single_configuration_calculation)
+                sec_scc = sec_run.m_create(SingleConfigurationCalculation)
             else:
                 sec_scc = sec_sccs[n]
 
             for key in keys:
                 val = self.energy_parser.get(key)[n]
                 if key in energy_keys_mapping:
-                    sec_energy = sec_scc.m_create(section_energy_contribution)
+                    sec_energy = sec_scc.m_create(EnergyContribution)
                     sec_energy.energy_contibution_kind = energy_keys_mapping[key]
                     sec_energy.energy_contribution_value = val
 
@@ -470,7 +476,7 @@ class GromacsParser(FairdiParser):
     def parse_topology(self):
         sec_run = self.archive.section_run[-1]
 
-        sec_topology = sec_run.m_create(section_topology)
+        sec_topology = sec_run.m_create(Topology)
         try:
             n_atoms = self.traj_parser.get('n_atoms', [0])[0]
         except Exception:
@@ -484,7 +490,7 @@ class GromacsParser(FairdiParser):
         for interaction in interactions:
             if not interaction[0] or not interaction[1]:
                 continue
-            sec_interaction = sec_topology.m_create(section_interaction)
+            sec_interaction = sec_topology.m_create(Interaction)
             sec_interaction.interaction_kind = interaction[0]
             sec_interaction.interaction_parameters = interaction[1]
 
@@ -510,7 +516,7 @@ class GromacsParser(FairdiParser):
             if positions is None:
                 continue
 
-            sec_system = sec_run.m_create(section_system)
+            sec_system = sec_run.m_create(System)
             sec_system.number_of_atoms = self.traj_parser.get_n_atoms(n)
             sec_system.configuration_periodic_dimensions = pbc
             sec_system.simulation_cell = self.traj_parser.get_cell(n)
@@ -524,14 +530,14 @@ class GromacsParser(FairdiParser):
             forces = self.traj_parser.get_forces(n)
             if forces is not None:
                 if create_scc:
-                    sec_scc = sec_run.m_create(section_single_configuration_calculation)
+                    sec_scc = sec_run.m_create(SingleConfigurationCalculation)
                 else:
                     sec_scc = sec_sccs[n]
                 sec_scc.atom_forces = forces
 
     def parse_sampling_method(self):
         sec_run = self.archive.section_run[-1]
-        sec_sampling_method = sec_run.m_create(section_sampling_method)
+        sec_sampling_method = sec_run.m_create(SamplingMethod)
 
         sampling_settings = self.log_parser.get_sampling_settings()
 
@@ -605,7 +611,7 @@ class GromacsParser(FairdiParser):
 
         self._init_parsers()
 
-        sec_run = self.archive.m_create(section_run)
+        sec_run = self.archive.m_create(Run)
 
         version = self.log_parser.get('GROMACS version', [['VERSION', 'unknown']])[0]
         sec_run.program_name = 'GROMACS'
