@@ -439,8 +439,9 @@ class GromacsParser(FairdiParser):
         if sec_sccs:
             if len(sec_sccs) != n_evaluations:
                 self.logger.warn(
-                    '''Mismatch in number of calculations %d and number of thermodynamic
-                    evaluations %d, will create new sections''' % (len(sec_sccs), n_evaluations))
+                    '''Mismatch in number of calculations and number of thermodynamic
+                    evaluations, will create new sections''',
+                    data=dict(n_calculations=len(sec_sccs), n_evaluations=n_evaluations))
 
             else:
                 create_scc = False
@@ -504,8 +505,9 @@ class GromacsParser(FairdiParser):
         if sec_sccs:
             if len(sec_sccs) != n_frames:
                 self.logger.warn(
-                    '''Mismatch in number of calculations %d and number of systems %d,
-                    will create new sections''' % (len(sec_sccs), n_frames))
+                    '''Mismatch in number of calculations and number of structures,
+                    will create new sections''',
+                    data=dict(n_calculations=len(sec_sccs), n_structures=n_frames))
 
             else:
                 create_scc = False
