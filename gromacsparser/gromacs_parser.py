@@ -147,7 +147,7 @@ class GromacsLogParser(TextParser):
             'density-guided-simulation-normalize-densities', 'density-guided-simulation-adaptive-force-scaling',
             'density-guided-simulation-adaptive-force-scaling-time-constant']
 
-        self._commands = ['GROMACS version']
+        self._commands = ['version']
 
         self._commands +=\
             run_control + langevin_dynamics + energy_minimization + shell_molecular_dynamics +\
@@ -173,15 +173,15 @@ class GromacsLogParser(TextParser):
             self._quantities.append(
                 Quantity(
                     command, r'\s*%s\s*\[*\s*\d*\s*\]*\s*[=:]+([\s\S]*?\n)' % command,
-                    str_operation=str_op)
+                    str_operation=str_op, repeats=False)
             )
 
     def get_pbc(self):
-        pbc = self.get('pbc', ['xyz'])[0]
+        pbc = self.get('pbc', 'xyz')
         return ['x' in pbc, 'y' in pbc, 'z' in pbc]
 
     def get_sampling_settings(self):
-        integrator = self.get('integrator', ['md'])[0].lower()
+        integrator = self.get('integrator', 'md').lower()
         if integrator in ['l-bfgs', 'cg', 'steep']:
             sampling_method = 'geometry_optimization'
         elif integrator in ['bd']:
@@ -190,10 +190,10 @@ class GromacsLogParser(TextParser):
             sampling_method = 'molecular_dynamics'
 
         ensemble_type = 'NVE' if sampling_method == 'molecular_dynamics' else None
-        tcoupl = self.get('tcoupl', ['no'])[0].lower()
+        tcoupl = self.get('tcoupl', 'no').lower()
         if tcoupl != 'no':
             ensemble_type = 'NVT'
-            pcoupl = self.get('pcoupl', ['no'])[0].lower()
+            pcoupl = self.get('pcoupl', 'no').lower()
             if pcoupl != 'no':
                 ensemble_type = 'NPT'
 
@@ -202,30 +202,30 @@ class GromacsLogParser(TextParser):
             ensemble_type=ensemble_type)
 
     def get_tpstat_settings(self):
-        target_T = self.get('ref-t', [0], unit='K')
+        target_T = self.get('ref-t', 0, unit='K')
 
         thermostat_type = None
-        tcoupl = self.get('tcoupl', ['no'])[0].lower()
+        tcoupl = self.get('tcoupl', 'no').lower()
         if tcoupl != 'no':
             thermostat_type = 'Velocity Rescaling' if tcoupl == 'v-rescale' else tcoupl.title()
 
-        thermostat_tau = self.get('tau-t', [0], unit='ps')
+        thermostat_tau = self.get('tau-t', 0, unit='ps')
 
         # TODO infer langevin_gamma [s] from bd_fric
-        # bd_fric = self.get('bd-fric', [0], unit='amu/ps')
+        # bd_fric = self.get('bd-fric', 0, unit='amu/ps')
         langevin_gamma = None
 
-        target_P = self.get('ref-p', [0], unit='bar')
+        target_P = self.get('ref-p', 0, unit='bar')
         # if P is array e.g. for non-isotropic pressures, get average since metainfo is float
         if hasattr(target_P, 'shape'):
             target_P = np.average(target_P)
 
         barostat_type = None
-        pcoupl = self.get('pcoupl', ['no'])[0].lower()
+        pcoupl = self.get('pcoupl', 'no').lower()
         if pcoupl != 'no':
             barostat_type = pcoupl.title()
 
-        barostat_tau = self.get('tau-p', [0], unit='ps')
+        barostat_tau = self.get('tau-p', 0, unit='ps')
 
         return dict(
             target_T=target_T, thermostat_type=thermostat_type, thermostat_tau=thermostat_tau,
@@ -386,13 +386,8 @@ class MDAnalysisParser(FileParser):
         self._results[key] = val
 
 
-class GromacsParser(FairdiParser):
+class GromacsParserInterface:
     def __init__(self):
-        super().__init__(
-            name='parsers/gromacs', code_name='Gromacs', code_homepage='http://www.gromacs.org/',
-            domain='dft', mainfile_contents_re=r'gmx mdrun, VERSION')
-        self._metainfo_env = m_env
-
         self.log_parser = GromacsLogParser()
         self.traj_parser = MDAnalysisParser()
         self.energy_parser = GromacsEDRParser()
@@ -547,10 +542,10 @@ class GromacsParser(FairdiParser):
         sec_sampling_method.ensemble_type = sampling_settings['ensemble_type']
         sec_sampling_method.x_gromacs_integrator_type = sampling_settings['integrator_type']
 
-        timestep = self.log_parser.get('dt', [0])[0]
+        timestep = self.log_parser.get('dt', 0)
         sec_sampling_method.x_gromacs_integrator_dt = timestep
 
-        nsteps = self.log_parser.get('nsteps', [0])[0]
+        nsteps = self.log_parser.get('nsteps', 0)
         sec_sampling_method.x_gromacs_number_of_steps_requested = nsteps
 
         tp_settings = self.log_parser.get_tpstat_settings()
@@ -590,18 +585,21 @@ class GromacsParser(FairdiParser):
         sec_control_parameters = sec_run.m_create(x_gromacs_section_control_parameters)
         keys = self.log_parser.keys()
         for key in keys:
-            val = self.log_parser.get(key, [None])[0]
+            val = self.log_parser.get(key)
             if val is None:
                 continue
             key = 'x_gromacs_inout_control_%s' % key.replace('-', '').lower()
             if hasattr(sec_control_parameters, key):
                 setattr(sec_control_parameters, key, str(val))
 
-    def _init_parsers(self):
+    def init_parser(self):
         self.log_parser.mainfile = self.filepath
         self.log_parser.logger = self.logger
         self.traj_parser.logger = self.logger
         self.energy_parser.logger = self.logger
+
+    def reuse_parser(self, parser):
+        self.log_parser.quantities = parser.log_parser.quantities
 
     def parse(self, filepath, archive, logger):
         self.filepath = os.path.abspath(filepath)
@@ -611,11 +609,11 @@ class GromacsParser(FairdiParser):
         self._gromacs_files = os.listdir(self._maindir)
         self._basename = os.path.basename(filepath).split('.')[0]
 
-        self._init_parsers()
+        self.init_parser()
 
         sec_run = self.archive.m_create(Run)
 
-        version = self.log_parser.get('GROMACS version', [['VERSION', 'unknown']])[0]
+        version = self.log_parser.get('version', ['VERSION', 'unknown'])
         sec_run.program_name = 'GROMACS'
         sec_run.program_version = version[1]
 
@@ -636,3 +634,22 @@ class GromacsParser(FairdiParser):
         self.parse_thermodynamic_data()
 
         self.parse_input()
+
+
+class GromacsParser(FairdiParser):
+    def __init__(self):
+        super().__init__(
+            name='parsers/gromacs', code_name='Gromacs', code_homepage='http://www.gromacs.org/',
+            domain='dft', mainfile_contents_re=r'gmx mdrun, VERSION')
+        self._metainfo_env = m_env
+        self.parser = None
+
+    def parse(self, filepath, archive, logger):
+        parser = GromacsParserInterface()
+
+        if self.parser is not None:
+            parser.reuse_parser(self.parser)
+        else:
+            self.parser = parser
+
+        parser.parse(filepath, archive, logger)
