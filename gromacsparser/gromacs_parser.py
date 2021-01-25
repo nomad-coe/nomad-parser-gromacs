@@ -386,8 +386,12 @@ class MDAnalysisParser(FileParser):
         self._results[key] = val
 
 
-class GromacsParserInterface:
+class GromacsParser(FairdiParser):
     def __init__(self):
+        super().__init__(
+            name='parsers/gromacs', code_name='Gromacs', code_homepage='http://www.gromacs.org/',
+            domain='dft', mainfile_contents_re=r'gmx mdrun, VERSION')
+        self._metainfo_env = m_env
         self.log_parser = GromacsLogParser()
         self.traj_parser = MDAnalysisParser()
         self.energy_parser = GromacsEDRParser()
@@ -634,22 +638,3 @@ class GromacsParserInterface:
         self.parse_thermodynamic_data()
 
         self.parse_input()
-
-
-class GromacsParser(FairdiParser):
-    def __init__(self):
-        super().__init__(
-            name='parsers/gromacs', code_name='Gromacs', code_homepage='http://www.gromacs.org/',
-            domain='dft', mainfile_contents_re=r'gmx mdrun, VERSION')
-        self._metainfo_env = m_env
-        self.parser = None
-
-    def parse(self, filepath, archive, logger):
-        parser = GromacsParserInterface()
-
-        if self.parser is not None:
-            parser.reuse_parser(self.parser)
-        else:
-            self.parser = parser
-
-        parser.parse(filepath, archive, logger)
