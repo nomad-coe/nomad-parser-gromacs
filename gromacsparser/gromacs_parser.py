@@ -476,7 +476,7 @@ class GromacsParser(FairdiParser):
                 val = self.energy_parser.get(key)[n]
                 if key in energy_keys_mapping:
                     sec_energy = sec_scc.m_create(EnergyContribution)
-                    sec_energy.energy_contibution_kind = energy_keys_mapping[key]
+                    sec_energy.energy_contribution_kind = energy_keys_mapping[key]
                     sec_energy.energy_contribution_value = val
 
                 elif key == 'Total Energy':
