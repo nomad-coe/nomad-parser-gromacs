@@ -977,6 +977,14 @@ class x_gromacs_section_control_parameters(MSection):
         ''',
         a_legacy=LegacyDefinition(name='x_gromacs_inout_control_taup'))
 
+    x_gromacs_inout_control_compressibility = Quantity(
+        type=np.dtype(np.float64),
+        shape=[3, 3],
+        description='''
+        Gromacs running environment and control parameters.
+        ''',
+        a_legacy=LegacyDefinition(name='x_gromacs_inout_control_compressibility'))
+
     x_gromacs_inout_control_compressibility0 = Quantity(
         type=np.dtype(np.float64),
         shape=[3],
@@ -1000,6 +1008,14 @@ class x_gromacs_section_control_parameters(MSection):
         Gromacs running environment and control parameters.
         ''',
         a_legacy=LegacyDefinition(name='x_gromacs_inout_control_compressibility2'))
+
+    x_gromacs_inout_control_refp = Quantity(
+        type=np.dtype(np.float64),
+        shape=[3, 3],
+        description='''
+        Gromacs running environment and control parameters.
+        ''',
+        a_legacy=LegacyDefinition(name='x_gromacs_inout_control_refp'))
 
     x_gromacs_inout_control_refp0 = Quantity(
         type=np.dtype(np.float64),
@@ -1033,6 +1049,14 @@ class x_gromacs_section_control_parameters(MSection):
         ''',
         a_legacy=LegacyDefinition(name='x_gromacs_inout_control_refcoordscaling'))
 
+    x_gromacs_inout_control_posrescom = Quantity(
+        type=np.dtype(np.float64),
+        shape=[3],
+        description='''
+        Gromacs running environment and control parameters.
+        ''',
+        a_legacy=LegacyDefinition(name='x_gromacs_inout_control_posrescom'))
+
     x_gromacs_inout_control_posrescom0 = Quantity(
         type=str,
         shape=[],
@@ -1056,6 +1080,14 @@ class x_gromacs_section_control_parameters(MSection):
         Gromacs running environment and control parameters.
         ''',
         a_legacy=LegacyDefinition(name='x_gromacs_inout_control_posrescom2'))
+
+    x_gromacs_inout_control_posrescomb = Quantity(
+        type=np.dtype(np.float64),
+        shape=[3],
+        description='''
+        Gromacs running environment and control parameters.
+        ''',
+        a_legacy=LegacyDefinition(name='x_gromacs_inout_control_posrescomb'))
 
     x_gromacs_inout_control_posrescomb0 = Quantity(
         type=str,
@@ -1201,6 +1233,14 @@ class x_gromacs_section_control_parameters(MSection):
         ''',
         a_legacy=LegacyDefinition(name='x_gromacs_inout_control_wallrlinpot'))
 
+    x_gromacs_inout_control_wallatomtype = Quantity(
+        type=np.dtype(np.float64),
+        shape=[2],
+        description='''
+        Gromacs running environment and control parameters.
+        ''',
+        a_legacy=LegacyDefinition(name='x_gromacs_inout_control_wallatomtype'))
+
     x_gromacs_inout_control_wallatomtype0 = Quantity(
         type=str,
         shape=[],
@@ -1216,6 +1256,14 @@ class x_gromacs_section_control_parameters(MSection):
         Gromacs running environment and control parameters.
         ''',
         a_legacy=LegacyDefinition(name='x_gromacs_inout_control_wallatomtype1'))
+
+    x_gromacs_inout_control_walldensity = Quantity(
+        type=np.dtype(np.float64),
+        shape=[],
+        description='''
+        Gromacs running environment and control parameters.
+        ''',
+        a_legacy=LegacyDefinition(name='x_gromacs_inout_control_walldensity'))
 
     x_gromacs_inout_control_walldensity0 = Quantity(
         type=str,
@@ -1352,6 +1400,14 @@ class x_gromacs_section_control_parameters(MSection):
         Gromacs running environment and control parameters.
         ''',
         a_legacy=LegacyDefinition(name='x_gromacs_inout_control_cosacceleration'))
+
+    x_gromacs_inout_control_deform = Quantity(
+        type=np.dtype(np.float64),
+        shape=[3, 3],
+        description='''
+        Gromacs running environment and control parameters.
+        ''',
+        a_legacy=LegacyDefinition(name='x_gromacs_inout_control_deform'))
 
     x_gromacs_inout_control_deform0 = Quantity(
         type=np.dtype(np.float64),
@@ -1568,6 +1624,14 @@ class x_gromacs_section_control_parameters(MSection):
         Gromacs running environment and control parameters.
         ''',
         a_legacy=LegacyDefinition(name='x_gromacs_inout_control_nfreeze'))
+
+    x_gromacs_inout_control_energygrpflags = Quantity(
+        type=np.dtype(np.float64),
+        shape=[3, 2],
+        description='''
+        Gromacs running environment and control parameters.
+        ''',
+        a_legacy=LegacyDefinition(name='x_gromacs_inout_control_energygrpflags'))
 
     x_gromacs_inout_control_energygrpflags0 = Quantity(
         type=str,

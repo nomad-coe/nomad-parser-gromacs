@@ -1,8 +1,7 @@
 #
 # Copyright The NOMAD Authors.
 #
-# This file is part of NOMAD.
-# See https://nomad-lab.eu for further info.
+# This file is part of NOMAD. See https://nomad-lab.eu for further info.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,10 +17,16 @@
 #
 
 import sys
-import os
-import os.path
-basedir = os.path.dirname(os.path.abspath(__file__))
-commondir = os.path.normpath(os.path.join(basedir,"../../../../python-common/common/python"))
+import json
+import logging
 
-if not commondir in sys.path:
-    sys.path.insert(0, commondir)
+from nomad.utils import configure_logging
+from nomad.datamodel import EntryArchive
+from gromacsparser import GromacsParser
+
+
+if __name__ == "__main__":
+    configure_logging(console_log_level=logging.DEBUG)
+    archive = EntryArchive()
+    GromacsParser().parse(sys.argv[1], archive, logging)
+    json.dump(archive.m_to_dict(), sys.stdout, indent=2)
