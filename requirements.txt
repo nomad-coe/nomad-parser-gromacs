@@ -6,3 +6,5 @@ pycodestyle
 pytest==3.10.0
 pytest-timeout
 pytest-cov==2.7.1
+panedr==0.2
+MDAnalysis
