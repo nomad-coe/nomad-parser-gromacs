@@ -23,6 +23,10 @@ from nomad.datamodel import EntryArchive
 from gromacsparser.gromacs_parser import GromacsParser
 
 
+def approx(value, abs=0, rel=1e-6):
+    return pytest.approx(value, abs=abs, rel=rel)
+
+
 @pytest.fixture(scope='module')
 def parser():
     return GromacsParser()
@@ -41,21 +45,21 @@ def test_md_verbose(parser):
     sec_sampling = sec_run.section_sampling_method[0]
     assert sec_sampling.ensemble_type == 'NPT'
     assert sec_sampling.x_gromacs_integrator_dt.magnitude == 0.0005
-    assert sec_sampling.x_gromacs_barostat_target_pressure.magnitude == pytest.approx(33333.33)
+    assert sec_sampling.x_gromacs_barostat_target_pressure.magnitude == approx(33333.33)
 
     sec_sccs = sec_run.section_single_configuration_calculation
     assert len(sec_sccs) == 9
-    assert sec_sccs[2].energy_total.magnitude == pytest.approx(-3.2711290665182795e-17)
-    assert sec_sccs[5].pressure.magnitude == pytest.approx(1.21842e+08)
-    assert sec_sccs[7].section_energy_contribution[1].energy_contribution_value.magnitude == pytest.approx(-4.16014846e-17)
-    assert sec_sccs[0].atom_forces[5][2].magnitude == pytest.approx(-7.932968909721231e-10)
+    assert sec_sccs[2].energy_total.magnitude == approx(-3.2711290665182795e-17)
+    assert sec_sccs[5].pressure.magnitude == approx(1.21842e+08)
+    assert sec_sccs[7].section_energy_contribution[1].energy_contribution_value.magnitude == approx(-4.16014846e-17)
+    assert sec_sccs[0].atom_forces[5][2].magnitude == approx(-7.932968909721231e-10)
 
     sec_systems = sec_run.section_system
     assert len(sec_systems) == 2
     assert np.shape(sec_systems[0].atom_positions) == (1516, 3)
-    assert sec_systems[1].atom_positions[800][1].magnitude == pytest.approx(2.4609454e-09)
-    assert sec_systems[0].atom_velocities[500][0].magnitude == pytest.approx(869.4773)
-    assert sec_systems[1].lattice_vectors[2][2].magnitude == pytest.approx(2.469158e-09)
+    assert sec_systems[1].atom_positions[800][1].magnitude == approx(2.4609454e-09)
+    assert sec_systems[0].atom_velocities[500][0].magnitude == approx(869.4773)
+    assert sec_systems[1].lattice_vectors[2][2].magnitude == approx(2.469158e-09)
 
 
 def test_md_edr(parser):
