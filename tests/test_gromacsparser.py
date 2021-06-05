@@ -49,10 +49,10 @@ def test_md_verbose(parser):
 
     sec_sccs = sec_run.section_single_configuration_calculation
     assert len(sec_sccs) == 9
-    assert sec_sccs[2].energy_total.magnitude == approx(-3.2711290665182795e-17)
-    assert sec_sccs[5].pressure.magnitude == approx(1.21842e+08)
-    assert sec_sccs[7].section_energy_contribution[1].energy_contribution_value.magnitude == approx(-4.16014846e-17)
-    assert sec_sccs[0].atom_forces[5][2].magnitude == approx(-7.932968909721231e-10)
+    assert sec_sccs[2].energy_total.value.magnitude == approx(-3.2711290665182795e-17)
+    assert sec_sccs[5].thermodynamics[0].pressure.magnitude == approx(1.21842e+08)
+    assert sec_sccs[7].energy_contributions[0].value.magnitude == approx(7.377359821857783e-18)
+    assert sec_sccs[0].forces_total.value[5][2].magnitude == approx(-7.932968909721231e-10)
 
     sec_systems = sec_run.section_system
     assert len(sec_systems) == 2

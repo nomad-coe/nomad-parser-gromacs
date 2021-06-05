@@ -34,8 +34,8 @@ from nomad.units import ureg
 from nomad.parsing.parser import FairdiParser
 
 from nomad.parsing.file_parser import TextParser, Quantity, FileParser
-from nomad.datamodel.metainfo.common_dft import Run, SamplingMethod, System,\
-    EnergyContribution, SingleConfigurationCalculation, Topology, Interaction, Method
+from nomad.datamodel.metainfo.common_dft import Run, SamplingMethod, System, Forces,\
+    SingleConfigurationCalculation, Topology, Interaction, Method, Thermodynamics, Energy
 from .metainfo.gromacs import x_gromacs_section_control_parameters, x_gromacs_section_input_output_files
 
 MOL = 6.022140857e+23
@@ -408,7 +408,7 @@ class GromacsParser(FairdiParser):
         forces = self.traj_parser.get('forces')
         for n, forces_n in enumerate(forces):
             sec_scc = sec_run.m_create(SingleConfigurationCalculation)
-            sec_scc.atom_forces = forces_n
+            sec_scc.forces_total = Forces(value=forces_n)
             sec_scc.single_configuration_calculation_to_system_ref = sec_run.section_system[n]
             sec_scc.single_configuration_to_calculation_method_ref = sec_run.section_method[-1]
 
@@ -437,7 +437,7 @@ class GromacsParser(FairdiParser):
         create_scc = False
         if len(forces) != n_evaluations:
             self.logger.warn(
-                'Mismatch in number of calculations and number of thermodynamic'
+                'Mismatch in number of calculations and number of thermodynamic '
                 'evaluations, will create new sections')
             create_scc = True
 
@@ -446,7 +446,7 @@ class GromacsParser(FairdiParser):
             timestep = self.log_parser.get('input_parameters', {}).get('dt', 1.0) * ureg.ps
 
         # TODO add other energy contributions, properties
-        energy_keys = ['LJ (SR)', 'Coulomb (SR)', 'Potential', 'Kinetic En.']
+        energy_keys = ['LJ (SR)']
 
         for n in range(n_evaluations):
             if create_scc:
@@ -454,26 +454,31 @@ class GromacsParser(FairdiParser):
             else:
                 sec_scc = sec_run.section_single_configuration_calculation[n]
 
+            sec_thermo = sec_scc.m_create(Thermodynamics)
             for key in thermo_data.keys():
                 val = thermo_data.get(key)[n]
                 if val is None:
                     continue
 
                 if key == 'Total Energy':
-                    sec_scc.energy_total = val
-
+                    sec_scc.energy_total = Energy(value=val)
+                elif key == 'Potential':
+                    sec_thermo.potential_energy = val
+                elif key == 'Kinetic En.':
+                    sec_thermo.kinetic_energy = val
+                elif key == 'Coulomb (SR)':
+                    sec_scc.energy_coulomb = Energy(value=val)
                 elif key == 'Pressure':
-                    sec_scc.pressure = val
-
+                    sec_thermo.pressure = val
                 elif key == 'Temperature':
-                    sec_scc.temperature = val
-
+                    sec_thermo.temperature = val
                 elif key == 'Time':
                     sec_scc.time_step = int((val / timestep).magnitude)
                 if key in energy_keys:
-                    sec_energy = sec_scc.m_create(EnergyContribution)
-                    sec_energy.energy_contribution_kind = self._metainfo_mapping[key]
-                    sec_energy.energy_contribution_value = val
+                    sec_energy = sec_scc.m_create(
+                        Energy, SingleConfigurationCalculation.energy_contributions)
+                    sec_energy.kind = self._metainfo_mapping[key]
+                    sec_energy.value = val
 
     def parse_topology(self):
         sec_run = self.archive.section_run[-1]
