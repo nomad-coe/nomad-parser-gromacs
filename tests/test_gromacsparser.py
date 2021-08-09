@@ -36,34 +36,34 @@ def test_md_verbose(parser):
     archive = EntryArchive()
     parser.parse('tests/data/fe_test/md.log', archive, None)
 
-    sec_run = archive.section_run[0]
-    assert sec_run.program_version == '5.1.4'
+    sec_run = archive.run[0]
+    assert sec_run.program.version == '5.1.4'
     sec_control = sec_run.x_gromacs_section_control_parameters[0]
     assert sec_control.x_gromacs_inout_control_coulombtype == 'PME'
     assert np.shape(sec_control.x_gromacs_inout_control_deform) == (3, 3)
 
-    sec_sampling = sec_run.section_sampling_method[0]
-    assert sec_sampling.ensemble_type == 'NPT'
-    assert sec_sampling.x_gromacs_integrator_dt.magnitude == 0.0005
-    assert sec_sampling.x_gromacs_barostat_target_pressure.magnitude == approx(33333.33)
+    sec_md = archive.workflow[0].molecular_dynamics
+    assert sec_md.ensemble_type == 'NPT'
+    assert sec_md.x_gromacs_integrator_dt.magnitude == 0.0005
+    assert sec_md.x_gromacs_barostat_target_pressure.magnitude == approx(33333.33)
 
-    sec_sccs = sec_run.section_single_configuration_calculation
+    sec_sccs = sec_run.calculation
     assert len(sec_sccs) == 9
-    assert sec_sccs[2].energy_total.value.magnitude == approx(-3.2711290665182795e-17)
-    assert sec_sccs[5].thermodynamics[0].pressure.magnitude == approx(1.21842e+08)
-    assert sec_sccs[7].energy_contributions[0].value.magnitude == approx(7.377359821857783e-18)
-    assert sec_sccs[0].forces_total.value[5][2].magnitude == approx(-7.932968909721231e-10)
+    assert sec_sccs[2].energy.total.value.magnitude == approx(-3.2711290665182795e-17)
+    assert sec_sccs[5].thermodynamics.pressure.magnitude == approx(1.21842e+08)
+    assert sec_sccs[7].energy.contributions[0].value.magnitude == approx(7.377359821857783e-18)
+    assert sec_sccs[0].forces.total.value[5][2].magnitude == approx(-7.932968909721231e-10)
 
-    sec_systems = sec_run.section_system
+    sec_systems = sec_run.system
     assert len(sec_systems) == 2
-    assert np.shape(sec_systems[0].atom_positions) == (1516, 3)
-    assert sec_systems[1].atom_positions[800][1].magnitude == approx(2.4609454e-09)
-    assert sec_systems[0].atom_velocities[500][0].magnitude == approx(869.4773)
-    assert sec_systems[1].lattice_vectors[2][2].magnitude == approx(2.469158e-09)
+    assert np.shape(sec_systems[0].atoms.positions) == (1516, 3)
+    assert sec_systems[1].atoms.positions[800][1].magnitude == approx(2.4609454e-09)
+    assert sec_systems[0].atoms.velocities[500][0].magnitude == approx(869.4773)
+    assert sec_systems[1].atoms.lattice_vectors[2][2].magnitude == approx(2.469158e-09)
 
 
 def test_md_edr(parser):
     archive = EntryArchive()
     parser.parse('tests/data/fe_test/mdrun.out', archive, None)
 
-    assert len(archive.section_run[0].section_single_configuration_calculation) == 7
+    assert len(archive.run[0].calculation) == 7

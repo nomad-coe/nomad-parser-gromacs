@@ -29,13 +29,23 @@ except Exception:
     logging.warn('Required module MDAnalysis not found.')
     MDAnalysis = False
 
-from .metainfo import m_env
 from nomad.units import ureg
 from nomad.parsing.parser import FairdiParser
 
 from nomad.parsing.file_parser import TextParser, Quantity, FileParser
-from nomad.datamodel.metainfo.common_dft import Run, SamplingMethod, System, Forces,\
-    SingleConfigurationCalculation, Topology, Interaction, Method, Thermodynamics, Energy
+from nomad.datamodel.metainfo.run.run import Run, Program, TimeRun
+from nomad.datamodel.metainfo.run.method import (
+    Method, ForceField, Model, Interaction,
+    MethodReference
+)
+from nomad.datamodel.metainfo.run.system import (
+    System, Atoms,
+    SystemReference
+)
+from nomad.datamodel.metainfo.run.calculation import (
+    Calculation, Energy, EnergyEntry, Forces, ForcesEntry, Thermodynamics
+)
+from nomad.datamodel.metainfo.workflow import Workflow, MolecularDynamics
 from .metainfo.gromacs import x_gromacs_section_control_parameters, x_gromacs_section_input_output_files
 
 MOL = 6.022140857e+23
@@ -361,7 +371,6 @@ class GromacsParser(FairdiParser):
         super().__init__(
             name='parsers/gromacs', code_name='Gromacs', code_homepage='http://www.gromacs.org/',
             domain='dft', mainfile_contents_re=r'gmx mdrun, VERSION')
-        self._metainfo_env = m_env
         self.log_parser = GromacsLogParser()
         self.traj_parser = MDAnalysisParser()
         self.energy_parser = GromacsEDRParser()
@@ -403,14 +412,14 @@ class GromacsParser(FairdiParser):
         return os.path.join(self._maindir, files[counts.index(min(counts))])
 
     def parse_thermodynamic_data(self):
-        sec_run = self.archive.section_run[-1]
+        sec_run = self.archive.run[-1]
 
         forces = self.traj_parser.get('forces')
         for n, forces_n in enumerate(forces):
-            sec_scc = sec_run.m_create(SingleConfigurationCalculation)
-            sec_scc.forces_total = Forces(value=forces_n)
-            sec_scc.single_configuration_calculation_to_system_ref = sec_run.section_system[n]
-            sec_scc.single_configuration_to_calculation_method_ref = sec_run.section_method[-1]
+            sec_scc = sec_run.m_create(Calculation)
+            sec_scc.forces = Forces(total=ForcesEntry(value=forces_n))
+            sec_scc.system_ref.append(SystemReference(value=sec_run.system[n]))
+            sec_scc.method_ref.append(MethodReference(value=sec_run.method[-1]))
 
         # try to get it from log file
         steps = self.log_parser.get('step', [])
@@ -450,61 +459,37 @@ class GromacsParser(FairdiParser):
 
         for n in range(n_evaluations):
             if create_scc:
-                sec_scc = sec_run.m_create(SingleConfigurationCalculation)
+                sec_scc = sec_run.m_create(Calculation)
             else:
-                sec_scc = sec_run.section_single_configuration_calculation[n]
+                sec_scc = sec_run.calculation[n]
 
             sec_thermo = sec_scc.m_create(Thermodynamics)
+            sec_energy = sec_scc.m_create(Energy)
             for key in thermo_data.keys():
                 val = thermo_data.get(key)[n]
                 if val is None:
                     continue
 
                 if key == 'Total Energy':
-                    sec_scc.energy_total = Energy(value=val)
+                    sec_energy.total = EnergyEntry(value=val)
                 elif key == 'Potential':
                     sec_thermo.potential_energy = val
                 elif key == 'Kinetic En.':
                     sec_thermo.kinetic_energy = val
                 elif key == 'Coulomb (SR)':
-                    sec_scc.energy_coulomb = Energy(value=val)
+                    sec_energy.coulomb = EnergyEntry(value=val)
                 elif key == 'Pressure':
                     sec_thermo.pressure = val
                 elif key == 'Temperature':
                     sec_thermo.temperature = val
                 elif key == 'Time':
-                    sec_scc.time_step = int((val / timestep).magnitude)
+                    sec_thermo.time_step = int((val / timestep).magnitude)
                 if key in energy_keys:
-                    sec_energy = sec_scc.m_create(
-                        Energy, SingleConfigurationCalculation.energy_contributions)
-                    sec_energy.kind = self._metainfo_mapping[key]
-                    sec_energy.value = val
-
-    def parse_topology(self):
-        sec_run = self.archive.section_run[-1]
-
-        sec_topology = sec_run.m_create(Topology)
-        try:
-            n_atoms = self.traj_parser.get('n_atoms', [0])[0]
-        except Exception:
-            gro_file = self.get_gromacs_file('gro')
-            self.traj_parser.mainfile = gro_file
-            n_atoms = self.traj_parser.get('n_atoms', [0])[0]
-
-        sec_topology.number_of_topology_atoms = n_atoms
-
-        interactions = self.traj_parser.get_interactions()
-        for interaction in interactions:
-            if not interaction[0] or not interaction[1]:
-                continue
-            sec_interaction = sec_topology.m_create(Interaction)
-            sec_interaction.interaction_kind = interaction[0]
-            sec_interaction.interaction_parameters = interaction[1]
-
-        sec_run.section_method[-1].method_to_topology_ref = sec_topology
+                    sec_energy.contributions.append(
+                        EnergyEntry(kind=self._metainfo_mapping[key], value=val))
 
     def parse_system(self):
-        sec_run = self.archive.section_run[-1]
+        sec_run = self.archive.run[-1]
 
         n_frames = self.traj_parser.get('n_frames', 0)
 
@@ -515,58 +500,73 @@ class GromacsParser(FairdiParser):
                 continue
 
             sec_system = sec_run.m_create(System)
-            sec_system.number_of_atoms = self.traj_parser.get_n_atoms(n)
-            sec_system.configuration_periodic_dimensions = pbc
-            sec_system.simulation_cell = self.traj_parser.get_cell(n)
-            sec_system.lattice_vectors = self.traj_parser.get_cell(n)
-            sec_system.atom_labels = self.traj_parser.get_atom_labels(n)
-            sec_system.atom_positions = positions
+            sec_atoms = sec_system.m_create(Atoms)
+            sec_atoms.n_atoms = self.traj_parser.get_n_atoms(n)
+            sec_atoms.periodic = pbc
+            sec_atoms.lattice_vectors = self.traj_parser.get_cell(n)
+            sec_atoms.labels = self.traj_parser.get_atom_labels(n)
+            sec_atoms.positions = positions
 
             velocities = self.traj_parser.get_velocities(n)
             if velocities is not None:
-                sec_system.atom_velocities = velocities
+                sec_atoms.velocities = velocities
 
     def parse_method(self):
-        self.archive.section_run[-1].m_create(Method)
-        # TODO what to put here
+        sec_method = self.archive.run[-1].m_create(Method)
+        sec_force_field = sec_method.m_create(ForceField)
+        sec_model = sec_force_field.m_create(Model)
+        try:
+            _ = self.traj_parser.get('n_atoms', [0])[0]
+        except Exception:
+            gro_file = self.get_gromacs_file('gro')
+            self.traj_parser.mainfile = gro_file
+            _ = self.traj_parser.get('n_atoms', [0])[0]
 
-    def parse_sampling_method(self):
-        sec_run = self.archive.section_run[-1]
-        sec_sampling_method = sec_run.m_create(SamplingMethod)
+        interactions = self.traj_parser.get_interactions()
+        for interaction in interactions:
+            if not interaction[0] or not interaction[1]:
+                continue
+            sec_interaction = sec_model.m_create(Interaction)
+            sec_interaction.type = interaction[0]
+            sec_interaction.parameters = interaction[1]
+
+    def parse_workflow(self):
+        sec_workflow = self.archive.m_create(Workflow)
 
         sampling_settings = self.log_parser.get_sampling_settings()
 
-        sec_sampling_method.sampling_method = sampling_settings['sampling_method']
-        sec_sampling_method.ensemble_type = sampling_settings['ensemble_type']
-        sec_sampling_method.x_gromacs_integrator_type = sampling_settings['integrator_type']
+        sec_workflow.type = sampling_settings['sampling_method']
+        sec_md = sec_workflow.m_create(MolecularDynamics)
+        sec_md.ensemble_type = sampling_settings['ensemble_type']
+        sec_md.x_gromacs_integrator_type = sampling_settings['integrator_type']
 
         input_parameters = self.log_parser.get('input_parameters', {})
         timestep = input_parameters.get('dt', 0)
-        sec_sampling_method.x_gromacs_integrator_dt = timestep
+        sec_md.x_gromacs_integrator_dt = timestep
 
         nsteps = input_parameters.get('nsteps', 0)
-        sec_sampling_method.x_gromacs_number_of_steps_requested = nsteps
+        sec_md.x_gromacs_number_of_steps_requested = nsteps
 
         tp_settings = self.log_parser.get_tpstat_settings()
 
         target_T = tp_settings.get('target_T', None)
         if target_T is not None:
-            sec_sampling_method.x_gromacs_thermostat_target_temperature = target_T
+            sec_md.x_gromacs_thermostat_target_temperature = target_T
         thermostat_tau = tp_settings.get('thermostat_tau', None)
         if thermostat_tau is not None:
-            sec_sampling_method.x_gromacs_thermostat_tau = thermostat_tau
+            sec_md.x_gromacs_thermostat_tau = thermostat_tau
         target_P = tp_settings.get('target_P', None)
         if target_P is not None:
-            sec_sampling_method.x_gromacs_barostat_target_pressure = target_P
+            sec_md.x_gromacs_barostat_target_pressure = target_P
         barostat_tau = tp_settings.get('barostat_P', None)
         if barostat_tau is not None:
-            sec_sampling_method.x_gromacs_barostat_tau = barostat_tau
+            sec_md.x_gromacs_barostat_tau = barostat_tau
         langevin_gamma = tp_settings.get('langevin_gamma', None)
         if langevin_gamma is not None:
-            sec_sampling_method.x_gromacs_langevin_gamma = langevin_gamma
+            sec_md.x_gromacs_langevin_gamma = langevin_gamma
 
     def parse_input(self):
-        sec_run = self.archive.section_run[-1]
+        sec_run = self.archive.run[-1]
         sec_input_output_files = sec_run.m_create(x_gromacs_section_input_output_files)
 
         topology_file = os.path.basename(self.traj_parser.mainfile)
@@ -611,16 +611,16 @@ class GromacsParser(FairdiParser):
 
         sec_run = self.archive.m_create(Run)
 
-        sec_run.program_name = 'GROMACS'
-
         header = self.log_parser.get('header', {})
-        sec_run.program_version = header.get('GROMACS version', 'unknown').lstrip('VERSION ')
+        sec_run.program = Program(
+            name='GROMACS', version=header.get('GROMACS version', 'unknown').lstrip('VERSION '))
 
+        sec_time_run = sec_run.m_create(TimeRun)
         for key in ['start', 'end']:
             time = self.log_parser.get('time_%s')
             if time is None:
                 continue
-            setattr(sec_run, 'time_run_date_%s' % key, datetime.datetime.strptime(
+            setattr(sec_time_run, 'date_%s' % key, datetime.datetime.strptime(
                 time, '%a %b %d %H:%M:%S %Y').timestamp())
 
         host_info = self.log_parser.get('host_info')
@@ -631,15 +631,13 @@ class GromacsParser(FairdiParser):
 
         self.parse_method()
 
-        self.parse_sampling_method()
+        self.parse_workflow()
 
         topology_file = self.get_gromacs_file('tpr')
         # I have no idea if output trajectory file can be specified in input
         trajectory_file = self.get_gromacs_file('trr')
         self.traj_parser.mainfile = topology_file
         self.traj_parser.trajectory_file = trajectory_file
-
-        self.parse_topology()
 
         self.parse_system()
 
