@@ -50,7 +50,7 @@ def test_md_verbose(parser):
     sec_sccs = sec_run.calculation
     assert len(sec_sccs) == 9
     assert sec_sccs[2].energy.total.value.magnitude == approx(-3.2711290665182795e-17)
-    assert sec_sccs[5].thermodynamics.pressure.magnitude == approx(1.21842e+08)
+    assert sec_sccs[5].thermodynamics[0].pressure.magnitude == approx(1.21842e+08)
     assert sec_sccs[7].energy.contributions[0].value.magnitude == approx(7.377359821857783e-18)
     assert sec_sccs[0].forces.total.value[5][2].magnitude == approx(-7.932968909721231e-10)
 
