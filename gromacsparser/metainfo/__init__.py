@@ -16,4 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import gromacsparser.metainfo.gromacs
+from nomad.metainfo import Environment
+
+from . import gromacs
+
+m_env = Environment()
+m_env.m_add_sub_section(Environment.packages, gromacs.m_package)
