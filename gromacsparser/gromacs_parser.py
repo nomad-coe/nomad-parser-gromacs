@@ -33,16 +33,14 @@ from nomad.units import ureg
 from nomad.parsing.parser import FairdiParser
 
 from nomad.parsing.file_parser import TextParser, Quantity, FileParser
-from nomad.datamodel.metainfo.run.run import Run, Program, TimeRun
-from nomad.datamodel.metainfo.run.method import (
-    Method, ForceField, Model, Interaction,
-    MethodReference
+from nomad.datamodel.metainfo.simulation.run import Run, Program, TimeRun
+from nomad.datamodel.metainfo.simulation.method import (
+    Method, ForceField, Model, Interaction
 )
-from nomad.datamodel.metainfo.run.system import (
-    System, Atoms,
-    SystemReference
+from nomad.datamodel.metainfo.simulation.system import (
+    System, Atoms
 )
-from nomad.datamodel.metainfo.run.calculation import (
+from nomad.datamodel.metainfo.simulation.calculation import (
     Calculation, Energy, EnergyEntry, Forces, ForcesEntry, Thermodynamics
 )
 from nomad.datamodel.metainfo.workflow import Workflow, MolecularDynamics
@@ -418,8 +416,8 @@ class GromacsParser(FairdiParser):
         for n, forces_n in enumerate(forces):
             sec_scc = sec_run.m_create(Calculation)
             sec_scc.forces = Forces(total=ForcesEntry(value=forces_n))
-            sec_scc.system_ref.append(SystemReference(value=sec_run.system[n]))
-            sec_scc.method_ref.append(MethodReference(value=sec_run.method[-1]))
+            sec_scc.system_ref = sec_run.system[n]
+            sec_scc.method_ref = sec_run.method[-1]
 
         # try to get it from log file
         steps = self.log_parser.get('step', [])
