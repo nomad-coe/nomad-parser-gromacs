@@ -494,10 +494,10 @@ class GromacsParser(FairdiParser):
         pbc = self.log_parser.get_pbc()
         for n in range(n_frames):
             positions = self.traj_parser.get_positions(n)
+            sec_system = sec_run.m_create(System)
             if positions is None:
                 continue
 
-            sec_system = sec_run.m_create(System)
             sec_atoms = sec_system.m_create(Atoms)
             sec_atoms.n_atoms = self.traj_parser.get_n_atoms(n)
             sec_atoms.periodic = pbc
