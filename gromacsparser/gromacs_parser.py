@@ -419,22 +419,26 @@ class GromacsParser(FairdiParser):
             sec_scc.system_ref = sec_run.system[n]
             sec_scc.method_ref = sec_run.method[-1]
 
-        # try to get it from log file
-        steps = self.log_parser.get('step', [])
-        if self.log_parser.get('averages') is not None:
-            steps.append(self.log_parser.get('averages'))
-        thermo_data = dict()
-        for step in steps:
-            if step.energies is None:
-                continue
-            keys = step.energies.keys()
-            for key in keys:
-                thermo_data.setdefault(key, [])
-                thermo_data[key].append(step.energies.get(key))
-            info = step.get('step_info', {})
-            thermo_data.setdefault('Time', [])
-            thermo_data['Time'].append(info.get('Time', None))
-        n_evaluations = len(steps)
+        # get it from edr file
+        if self.energy_parser.keys():
+            thermo_data = self.energy_parser
+            n_evaluations = self.energy_parser.length
+        else:
+            # try to get it from log file
+            steps = self.log_parser.get('step', [])
+            thermo_data = dict()
+            for n, step in enumerate(steps):
+                n = int(step.get('step_info', {}).get('Step', n))
+                if step.energies is None:
+                    continue
+                keys = step.energies.keys()
+                for key in keys:
+                    thermo_data.setdefault(key, [None] * len(forces))
+                    thermo_data[key][n] = step.energies.get(key)
+                info = step.get('step_info', {})
+                thermo_data.setdefault('Time', [None] * len(forces))
+                thermo_data['Time'][n] = info.get('Time', None)
+            n_evaluations = n + 1
 
         if not thermo_data:
             # get it from edr file
@@ -453,7 +457,7 @@ class GromacsParser(FairdiParser):
             timestep = self.log_parser.get('input_parameters', {}).get('dt', 1.0) * ureg.ps
 
         # TODO add other energy contributions, properties
-        energy_keys = ['LJ (SR)']
+        energy_keys = ['LJ (SR)', 'Coulomb (SR)', 'Potential', 'Kinetic En.']
 
         for n in range(n_evaluations):
             if create_scc:
