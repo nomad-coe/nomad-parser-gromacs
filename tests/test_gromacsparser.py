@@ -48,10 +48,10 @@ def test_md_verbose(parser):
     assert sec_sampling.x_gromacs_barostat_target_pressure.magnitude == approx(33333.33)
 
     sec_sccs = sec_run.section_single_configuration_calculation
-    assert len(sec_sccs) == 9
+    assert len(sec_sccs) == 7
     assert sec_sccs[2].energy_total.magnitude == approx(-3.2711290665182795e-17)
-    assert sec_sccs[5].pressure.magnitude == approx(1.21842e+08)
-    assert sec_sccs[7].section_energy_contribution[1].energy_contribution_value.magnitude == approx(-4.16014846e-17)
+    assert sec_sccs[5].pressure.magnitude == approx(-63926916.5)
+    assert sec_sccs[-2].section_energy_contribution[1].energy_contribution_value.magnitude == approx(-4.15778738e-17)
     assert sec_sccs[0].atom_forces[5][2].magnitude == approx(-7.932968909721231e-10)
 
     sec_systems = sec_run.section_system
