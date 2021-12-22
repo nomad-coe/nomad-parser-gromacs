@@ -368,7 +368,7 @@ class GromacsParser(FairdiParser):
     def __init__(self):
         super().__init__(
             name='parsers/gromacs', code_name='Gromacs', code_homepage='http://www.gromacs.org/',
-            domain='dft', mainfile_contents_re=r'gmx mdrun, VERSION')
+            domain='dft', mainfile_contents_re=r'gmx mdrun, (VERSION|version)')
         self.log_parser = GromacsLogParser()
         self.traj_parser = MDAnalysisParser()
         self.energy_parser = GromacsEDRParser()
