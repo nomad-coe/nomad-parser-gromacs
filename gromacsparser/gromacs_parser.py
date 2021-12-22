@@ -545,6 +545,7 @@ class GromacsParser(FairdiParser):
         input_parameters = self.log_parser.get('input_parameters', {})
         timestep = input_parameters.get('dt', 0)
         sec_md.x_gromacs_integrator_dt = timestep
+        sec_md.timestep = timestep * 1e-12
 
         nsteps = input_parameters.get('nsteps', 0)
         sec_md.x_gromacs_number_of_steps_requested = nsteps
