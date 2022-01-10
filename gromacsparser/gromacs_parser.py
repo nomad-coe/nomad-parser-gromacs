@@ -125,7 +125,7 @@ class GromacsLogParser(TextParser):
             # TODO cannot understand treatment of the command line in the old parser
             Quantity(
                 'header',
-                r'(GROMACS version:[\s\S]+?)\n\n', str_operation=str_to_header),
+                r'(?:GROMACS|Gromacs) (version:[\s\S]+?)\n\n', str_operation=str_to_header),
             Quantity(
                 'input_parameters',
                 r'Input Parameters:\s*([\s\S]+?)\n\n', str_operation=str_to_input_parameters),
@@ -279,7 +279,11 @@ class MDAnalysisParser(FileParser):
 
             for i in range(len(interaction)):
                 interactions.append(
-                    (str(interaction[i].type), [interaction[i].value()]))
+                    dict(
+                        atom_labels=list(interaction[i].type), parameters=float(interaction[i].value()),
+                        atom_indices=interaction[i].indices, type=interaction[i].btype
+                    )
+                )
 
         self._results['interactions'] = interactions
 
@@ -518,19 +522,20 @@ class GromacsParser(FairdiParser):
         sec_force_field = sec_method.m_create(ForceField)
         sec_model = sec_force_field.m_create(Model)
         try:
-            _ = self.traj_parser.get('n_atoms', [0])[0]
+            n_atoms = self.traj_parser.get('n_atoms')[0]
         except Exception:
             gro_file = self.get_gromacs_file('gro')
             self.traj_parser.mainfile = gro_file
-            _ = self.traj_parser.get('n_atoms', [0])[0]
+            n_atoms = self.traj_parser.get('n_atoms', [0])[0]
+
+        if n_atoms == 0:
+            self.logger.error('Error parsing interactions.')
 
         interactions = self.traj_parser.get_interactions()
         for interaction in interactions:
-            if not interaction[0] or not interaction[1]:
-                continue
             sec_interaction = sec_model.m_create(Interaction)
-            sec_interaction.type = interaction[0]
-            sec_interaction.parameters = interaction[1]
+            for key, val in interaction.items():
+                setattr(sec_interaction, key, val)
 
     def parse_workflow(self):
         sec_workflow = self.archive.m_create(Workflow)
@@ -616,11 +621,11 @@ class GromacsParser(FairdiParser):
 
         header = self.log_parser.get('header', {})
         sec_run.program = Program(
-            name='GROMACS', version=header.get('GROMACS version', 'unknown').lstrip('VERSION '))
+            name='GROMACS', version=header.get('version', 'unknown').lstrip('VERSION '))
 
         sec_time_run = sec_run.m_create(TimeRun)
         for key in ['start', 'end']:
-            time = self.log_parser.get('time_%s')
+            time = self.log_parser.get('time_%s' % key)
             if time is None:
                 continue
             setattr(sec_time_run, 'date_%s' % key, datetime.datetime.strptime(
@@ -632,15 +637,15 @@ class GromacsParser(FairdiParser):
             sec_run.x_gromacs_parallel_task_nr = host_info[1]
             sec_run.x_gromacs_number_of_tasks = host_info[2]
 
-        self.parse_method()
-
-        self.parse_workflow()
-
         topology_file = self.get_gromacs_file('tpr')
         # I have no idea if output trajectory file can be specified in input
         trajectory_file = self.get_gromacs_file('trr')
         self.traj_parser.mainfile = topology_file
         self.traj_parser.trajectory_file = trajectory_file
+
+        self.parse_method()
+
+        self.parse_workflow()
 
         self.parse_system()
 

@@ -1888,11 +1888,11 @@ class Run(simulation.run.Run):
 
     x_gromacs_section_input_output_files = SubSection(
         sub_section=SectionProxy('x_gromacs_section_input_output_files'),
-        repeats=True,)
+        repeats=False)
 
     x_gromacs_section_control_parameters = SubSection(
         sub_section=SectionProxy('x_gromacs_section_control_parameters'),
-        repeats=True,)
+        repeats=False)
 
 
 class Constraint(simulation.system.Constraint):
