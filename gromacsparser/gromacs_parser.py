@@ -35,7 +35,7 @@ from nomad.parsing.parser import FairdiParser
 from nomad.parsing.file_parser import TextParser, Quantity, FileParser
 from nomad.datamodel.metainfo.simulation.run import Run, Program, TimeRun
 from nomad.datamodel.metainfo.simulation.method import (
-    Method, ForceField, Model, Interaction
+    Method, ForceField, Model, Interaction, AtomParameters
 )
 from nomad.datamodel.metainfo.simulation.system import (
     System, Atoms
@@ -342,6 +342,20 @@ class MDAnalysisParser(FileParser):
             val = [
                 MDAnalysis.topology.guessers.guess_atom_element(atom.name)
                 for atom in atoms]
+        elif key == 'atom_names':
+            val = [atom.name for atom in atoms]
+        elif key == 'charges':
+            val = [atom.charge for atom in atoms] * ureg.elementary_charge
+        elif key == 'masses':
+            val = [atom.mass for atom in atoms] * ureg.amu
+        elif key == 'resids':
+            val = [atom.resid for atom in atoms]
+        elif key == 'resnames':
+            val = [atom.resname for atom in atoms]
+        elif key == 'molnums':
+            val = [atom.molnum for atom in atoms]
+        elif key == 'moltypes':
+            val = [atom.moltype for atom in atoms]
         elif key == 'n_atoms':
             val = [traj.n_atoms for traj in trajectory] if trajectory else [len(atoms)]
         elif key == 'n_frames':
@@ -527,6 +541,16 @@ class GromacsParser(FairdiParser):
             gro_file = self.get_gromacs_file('gro')
             self.traj_parser.mainfile = gro_file
             n_atoms = self.traj_parser.get('n_atoms', [0])[0]
+
+        for n in range(n_atoms):
+            sec_atom = sec_method.m_create(AtomParameters)
+            sec_atom.charge = self.traj_parser.get('charges', [None] * (n + 1))[n]
+            sec_atom.mass = self.traj_parser.get('masses', [None] * (n + 1))[n]
+            sec_atom.x_gromacs_atom_name = self.traj_parser.get('atom_names', [None] * (n + 1))[n]
+            sec_atom.x_gromacs_atom_resid = self.traj_parser.get('resids', [None] * (n + 1))[n]
+            sec_atom.x_gromacs_atom_resname = self.traj_parser.get('resnames', [None] * (n + 1))[n]
+            sec_atom.x_gromacs_atom_molnum = self.traj_parser.get('molnums', [None] * (n + 1))[n]
+            sec_atom.x_gromacs_atom_moltype = self.traj_parser.get('moltypes', [None] * (n + 1))[n]
 
         if n_atoms == 0:
             self.logger.error('Error parsing interactions.')

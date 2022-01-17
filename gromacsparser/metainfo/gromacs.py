@@ -1715,6 +1715,30 @@ class AtomParameters(simulation.method.AtomParameters):
         Number of atoms involved in this type.
         ''',)
 
+    x_gromacs_atom_resid = Quantity(
+        type=np.dtype(np.int32),
+        shape=[],
+        description='''
+        ''',)
+
+    x_gromacs_atom_resname = Quantity(
+        type=str,
+        shape=[],
+        description='''
+        ''',)
+
+    x_gromacs_atom_molnum = Quantity(
+        type=np.dtype(np.int32),
+        shape=[],
+        description='''
+        ''',)
+
+    x_gromacs_atom_moltype = Quantity(
+        type=str,
+        shape=[],
+        description='''
+        ''',)
+
 
 class Interaction(simulation.method.Interaction):
 
