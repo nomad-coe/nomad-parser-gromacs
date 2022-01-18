@@ -393,6 +393,21 @@ class GromacsParser(FairdiParser):
         self._metainfo_mapping = {
             'LJ (SR)': 'Leonard-Jones', 'Coulomb (SR)': 'coulomb',
             'Potential': 'potential', 'Kinetic En.': 'kinetic'}
+        self._frame_rate = None
+        # max cumulative number of atoms for all parsed trajectories to calculate sampling rate
+        self._cum_max_atoms = 1000000
+
+    @property
+    def frame_rate(self):
+        if self._frame_rate is None:
+            n_atoms = self.traj_parser.get('n_atoms', [0])[0]
+            n_frames = self.traj_parser.get('n_frames', 0)
+            if n_atoms == 0 or n_frames == 0:
+                self._frame_rate = 1
+            else:
+                cum_atoms = n_atoms * n_frames
+                self._frame_rate = 1 if cum_atoms <= self._cum_max_atoms else cum_atoms // self._cum_max_atoms
+        return self._frame_rate
 
     def get_gromacs_file(self, ext):
         files = [d for d in self._gromacs_files if d.endswith(ext)]
@@ -432,6 +447,8 @@ class GromacsParser(FairdiParser):
 
         forces = self.traj_parser.get('forces')
         for n, forces_n in enumerate(forces):
+            if (n % self.frame_rate) > 0:
+                continue
             sec_scc = sec_run.m_create(Calculation)
             sec_scc.forces = Forces(total=ForcesEntry(value=forces_n))
             sec_scc.system_ref = sec_run.system[n]
@@ -478,6 +495,9 @@ class GromacsParser(FairdiParser):
         energy_keys = ['LJ (SR)', 'Coulomb (SR)', 'Potential', 'Kinetic En.']
 
         for n in range(n_evaluations):
+            if (n % self.frame_rate) > 0:
+                continue
+
             if create_scc:
                 sec_scc = sec_run.m_create(Calculation)
             else:
@@ -486,7 +506,7 @@ class GromacsParser(FairdiParser):
             sec_thermo = sec_scc.m_create(Thermodynamics)
             sec_energy = sec_scc.m_create(Energy)
             for key in thermo_data.keys():
-                val = thermo_data.get(key)[n]
+                val = thermo_data.get(key)[(n // self.frame_rate)]
                 if val is None:
                     continue
 
@@ -515,6 +535,8 @@ class GromacsParser(FairdiParser):
 
         pbc = self.log_parser.get_pbc()
         for n in range(n_frames):
+            if (n % self.frame_rate) > 0:
+                continue
             positions = self.traj_parser.get_positions(n)
             sec_system = sec_run.m_create(System)
             if positions is None:
@@ -546,6 +568,7 @@ class GromacsParser(FairdiParser):
             sec_atom = sec_method.m_create(AtomParameters)
             sec_atom.charge = self.traj_parser.get('charges', [None] * (n + 1))[n]
             sec_atom.mass = self.traj_parser.get('masses', [None] * (n + 1))[n]
+            sec_atom.label = self.traj_parser.get('atom_labels', [None] * (n + 1))[n]
             sec_atom.x_gromacs_atom_name = self.traj_parser.get('atom_names', [None] * (n + 1))[n]
             sec_atom.x_gromacs_atom_resid = self.traj_parser.get('resids', [None] * (n + 1))[n]
             sec_atom.x_gromacs_atom_resname = self.traj_parser.get('resnames', [None] * (n + 1))[n]
@@ -627,6 +650,7 @@ class GromacsParser(FairdiParser):
         self.log_parser.logger = self.logger
         self.traj_parser.logger = self.logger
         self.energy_parser.logger = self.logger
+        self._frame_rate = None
 
     def reuse_parser(self, parser):
         self.log_parser.quantities = parser.log_parser.quantities
