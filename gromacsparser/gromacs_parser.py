@@ -451,7 +451,7 @@ class GromacsParser(FairdiParser):
                 continue
             sec_scc = sec_run.m_create(Calculation)
             sec_scc.forces = Forces(total=ForcesEntry(value=forces_n))
-            sec_scc.system_ref = sec_run.system[n]
+            sec_scc.system_ref = sec_run.system[n // self.frame_rate]
             sec_scc.method_ref = sec_run.method[-1]
 
         # get it from edr file
@@ -501,12 +501,11 @@ class GromacsParser(FairdiParser):
             if create_scc:
                 sec_scc = sec_run.m_create(Calculation)
             else:
-                sec_scc = sec_run.calculation[n]
-
+                sec_scc = sec_run.calculation[n // self._frame_rate]
             sec_thermo = sec_scc.m_create(Thermodynamics)
             sec_energy = sec_scc.m_create(Energy)
             for key in thermo_data.keys():
-                val = thermo_data.get(key)[(n // self.frame_rate)]
+                val = thermo_data.get(key)[n]
                 if val is None:
                     continue
 
