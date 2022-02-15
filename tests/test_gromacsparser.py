@@ -61,6 +61,12 @@ def test_md_verbose(parser):
     assert sec_systems[0].atoms.velocities[500][0].magnitude == approx(869.4773)
     assert sec_systems[1].atoms.lattice_vectors[2][2].magnitude == approx(2.469158e-09)
 
+    sec_methods = sec_run.method
+    assert len(sec_methods) == 1
+    assert len(sec_methods[0].force_field.model[0].contributions) == 1127
+    assert sec_methods[0].force_field.model[0].contributions[0].type == 'angle'
+    assert sec_methods[0].force_field.model[0].contributions[1120].parameters[1] == 575.0
+
 
 def test_md_edr(parser):
     archive = EntryArchive()

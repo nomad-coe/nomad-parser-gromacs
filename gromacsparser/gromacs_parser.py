@@ -25,6 +25,7 @@ import datetime
 import panedr
 try:
     import MDAnalysis
+    from MDAnalysis.topology.tpr import utils as tpr_utils, setting as tpr_setting
 except Exception:
     logging.warn('Required module MDAnalysis not found.')
     MDAnalysis = False
@@ -285,6 +286,12 @@ class MDAnalysisParser(FileParser):
                     )
                 )
 
+        # add force field parameters
+        try:
+            interactions.extend(self.get_force_field_parameters())
+        except Exception:
+            self.logger.error('Error parsing force field parameters.')
+
         self._results['interactions'] = interactions
 
         return interactions
@@ -306,6 +313,278 @@ class MDAnalysisParser(FileParser):
 
     def get_forces(self, frame_index):
         return self.get('forces', [None] * frame_index)[frame_index]
+
+    def get_force_field_parameters(self):
+        # read force field parameters not saved by MDAnalysis
+        # copied from MDAnalysis.topology.tpr.utils
+        # TODO maybe a better implementation exists
+        if MDAnalysis.__version__ != '2.0.0':
+            self.logger.warn('Incompatible version of MDAnalysis.')
+
+        with open(self.mainfile, 'rb') as f:
+            data = tpr_utils.TPXUnpacker(f.read())
+
+        interactions = []
+
+        # read header
+        header = tpr_utils.read_tpxheader(data)
+        # address compatibility issue
+        if header.fver >= tpr_setting.tpxv_AddSizeField and header.fgen >= 27:
+            actual_body_size = len(data.get_buffer()) - data.get_position()
+            if actual_body_size == 4 * header.sizeOfTprBody:
+                self.logger.error('Unsupported tpr format.')
+                return interactions
+            data = tpr_utils.TPXUnpacker2020.from_unpacker(data)
+
+        # read other unimportant parts
+        if header.bBox:
+            tpr_utils.extract_box_info(data, header.fver)
+        if header.ngtc > 0:
+            if header.fver < 69:
+                tpr_utils.ndo_real(data, header.ngtc)
+            tpr_utils.ndo_real(data, header.ngtc)
+        if not header.bTop:
+            return interactions
+
+        tpr_utils.do_symstr(data, tpr_utils.do_symtab(data))
+        data.unpack_int()
+        ntypes = data.unpack_int()
+        # functional types
+        functypes = tpr_utils.ndo_int(data, ntypes)
+        data.unpack_double() if header.fver >= 66 else 12.0
+        data.unpack_real()
+        # read the ffparams
+        for i in functypes:
+            parameters = []
+            if i in [
+                tpr_setting.F_ANGLES, tpr_setting.F_G96ANGLES,
+                tpr_setting.F_BONDS, tpr_setting.F_G96BONDS,
+                tpr_setting.F_HARMONIC, tpr_setting.F_IDIHS
+            ]:
+                parameters.append(data.unpack_real())  # rA
+                parameters.append(data.unpack_real())  # krA
+                parameters.append(data.unpack_real())  # rB
+                parameters.append(data.unpack_real())  # krB
+
+            elif i in [tpr_setting.F_RESTRANGLES]:
+                parameters.append(data.unpack_real())  # harmonic.rA
+                parameters.append(data.unpack_real())  # harmonic.krA
+            elif i in [tpr_setting.F_LINEAR_ANGLES]:
+                parameters.append(data.unpack_real())  # linangle.klinA
+                parameters.append(data.unpack_real())  # linangle.aA
+                parameters.append(data.unpack_real())  # linangle.klinB
+                parameters.append(data.unpack_real())  # linangle.aB);
+            elif i in [tpr_setting.F_FENEBONDS]:
+                parameters.append(data.unpack_real())  # fene.bm
+                parameters.append(data.unpack_real())  # fene.kb
+            elif i in [tpr_setting.F_RESTRBONDS]:
+                parameters.append(data.unpack_real())  # restraint.lowA
+                parameters.append(data.unpack_real())  # restraint.up1A
+                parameters.append(data.unpack_real())  # restraint.up2A
+                parameters.append(data.unpack_real())  # restraint.kA
+                parameters.append(data.unpack_real())  # restraint.lowB
+                parameters.append(data.unpack_real())  # restraint.up1B
+                parameters.append(data.unpack_real())  # restraint.up2B
+                parameters.append(data.unpack_real())  # restraint.kB
+            elif i in [
+                tpr_setting.F_TABBONDS, tpr_setting.F_TABBONDSNC,
+                tpr_setting.F_TABANGLES, tpr_setting.F_TABDIHS,
+            ]:
+                parameters.append(data.unpack_real())  # tab.kA
+                parameters.append(data.unpack_int())  # tab.table
+                parameters.append(data.unpack_real())  # tab.kB
+            elif i in [tpr_setting.F_CROSS_BOND_BONDS]:
+                parameters.append(data.unpack_real())  # cross_bb.r1e
+                parameters.append(data.unpack_real())  # cross_bb.r2e
+                parameters.append(data.unpack_real())  # cross_bb.krr
+            elif i in [tpr_setting.F_CROSS_BOND_ANGLES]:
+                parameters.append(data.unpack_real())  # cross_ba.r1e
+                parameters.append(data.unpack_real())  # cross_ba.r2e
+                parameters.append(data.unpack_real())  # cross_ba.r3e
+                parameters.append(data.unpack_real())  # cross_ba.krt
+            elif i in [tpr_setting.F_UREY_BRADLEY]:
+                parameters.append(data.unpack_real())  # u_b.theta
+                parameters.append(data.unpack_real())  # u_b.ktheta
+                parameters.append(data.unpack_real())  # u_b.r13
+                parameters.append(data.unpack_real())  # u_b.kUB
+                if header.fver >= 79:
+                    parameters.append(data.unpack_real())  # u_b.thetaB
+                    parameters.append(data.unpack_real())  # u_b.kthetaB
+                    parameters.append(data.unpack_real())  # u_b.r13B
+                    parameters.append(data.unpack_real())  # u_b.kUBB
+            elif i in [tpr_setting.F_QUARTIC_ANGLES]:
+                parameters.append(data.unpack_real())  # qangle.theta
+                parameters.append(tpr_utils.ndo_real(data, 5))   # qangle.c
+            elif i in [tpr_setting.F_BHAM]:
+                parameters.append(data.unpack_real())  # bham.a
+                parameters.append(data.unpack_real())  # bham.b
+                parameters.append(data.unpack_real())  # bham.c
+            elif i in [tpr_setting.F_MORSE]:
+                parameters.append(data.unpack_real())  # morse.b0
+                parameters.append(data.unpack_real())  # morse.cb
+                parameters.append(data.unpack_real())  # morse.beta
+                if header.fver >= 79:
+                    parameters.append(data.unpack_real())  # morse.b0B
+                    parameters.append(data.unpack_real())  # morse.cbB
+                    parameters.append(data.unpack_real())  # morse.betaB
+            elif i in [tpr_setting.F_CUBICBONDS]:
+                parameters.append(data.unpack_real())  # cubic.b0g
+                parameters.append(data.unpack_real())  # cubic.kb
+                parameters.append(data.unpack_real())  # cubic.kcub
+            elif i in [tpr_setting.F_CONNBONDS]:
+                pass
+            elif i in [tpr_setting.F_POLARIZATION]:
+                parameters.append(data.unpack_real())  # polarize.alpha
+            elif i in [tpr_setting.F_ANHARM_POL]:
+                parameters.append(data.unpack_real())  # anharm_polarize.alpha
+                parameters.append(data.unpack_real())  # anharm_polarize.drcut
+                parameters.append(data.unpack_real())  # anharm_polarize.khyp
+            elif i in [tpr_setting.F_WATER_POL]:
+                parameters.append(data.unpack_real())  # wpol.al_x
+                parameters.append(data.unpack_real())  # wpol.al_y
+                parameters.append(data.unpack_real())  # wpol.al_z
+                parameters.append(data.unpack_real())  # wpol.rOH
+                parameters.append(data.unpack_real())  # wpol.rHH
+                parameters.append(data.unpack_real())  # wpol.rOD
+            elif i in [tpr_setting.F_THOLE_POL]:
+                parameters.append(data.unpack_real())  # thole.a
+                parameters.append(data.unpack_real())  # thole.alpha1
+                parameters.append(data.unpack_real())  # thole.alpha2
+                parameters.append(data.unpack_real())  # thole.rfac
+
+            elif i in [tpr_setting.F_LJ]:
+                parameters.append(data.unpack_real())  # lj_c6
+                parameters.append(data.unpack_real())  # lj_c9
+            elif i in [tpr_setting.F_LJ14]:
+                parameters.append(data.unpack_real())  # lj14_c6A
+                parameters.append(data.unpack_real())  # lj14_c12A
+                parameters.append(data.unpack_real())  # lj14_c6B
+                parameters.append(data.unpack_real())  # lj14_c12B
+            elif i in [tpr_setting.F_LJC14_Q]:
+                parameters.append(data.unpack_real())  # ljc14.fqq
+                parameters.append(data.unpack_real())  # ljc14.qi
+                parameters.append(data.unpack_real())  # ljc14.qj
+                parameters.append(data.unpack_real())  # ljc14.c6
+                parameters.append(data.unpack_real())  # ljc14.c12
+            elif i in [tpr_setting.F_LJC_PAIRS_NB]:
+                parameters.append(data.unpack_real())  # ljcnb.qi
+                parameters.append(data.unpack_real())  # ljcnb.qj
+                parameters.append(data.unpack_real())  # ljcnb.c6
+                parameters.append(data.unpack_real())  # ljcnb.c12
+
+            elif i in [
+                tpr_setting.F_PIDIHS, tpr_setting.F_ANGRES,
+                tpr_setting.F_ANGRESZ, tpr_setting.F_PDIHS,
+            ]:
+                parameters.append(data.unpack_real())  # pdihs_phiA
+                parameters.append(data.unpack_real())  # pdihs_cpA
+                parameters.append(data.unpack_real())  # pdihs_phiB
+                parameters.append(data.unpack_real())  # pdihs_cpB
+                parameters.append(data.unpack_int())  # pdihs_mult
+
+            elif i in [tpr_setting.F_RESTRDIHS]:
+                parameters.append(data.unpack_real())  # pdihs.phiA
+                parameters.append(data.unpack_real())  # pdihs.cpA
+            elif i in [tpr_setting.F_DISRES]:
+                parameters.append(data.unpack_int())  # disres.label
+                parameters.append(data.unpack_int())  # disres.type
+                parameters.append(data.unpack_real())  # disres.low
+                parameters.append(data.unpack_real())  # disres.up1
+                parameters.append(data.unpack_real())  # disres.up2
+                parameters.append(data.unpack_real())  # disres.kfac
+
+            elif i in [tpr_setting.F_ORIRES]:
+                parameters.append(data.unpack_int())  # orires.ex
+                parameters.append(data.unpack_int())  # orires.label
+                parameters.append(data.unpack_int())  # orires.power
+                parameters.append(data.unpack_real())  # orires.c
+                parameters.append(data.unpack_real())  # orires.obs
+                parameters.append(data.unpack_real())  # orires.kfac
+
+            elif i in [tpr_setting.F_DIHRES]:
+                if header.fver < 72:
+                    parameters.append(data.unpack_int())  # idum
+                    parameters.append(data.unpack_int())  # idum
+                parameters.append(data.unpack_real())  # dihres.phiA
+                parameters.append(data.unpack_real())  # dihres.dphiA
+                parameters.append(data.unpack_real())  # dihres.kfacA
+                if header.fver >= 72:
+                    parameters.append(data.unpack_real())  # dihres.phiB
+                    parameters.append(data.unpack_real())  # dihres.dphiB
+                    parameters.append(data.unpack_real())  # dihres.kfacB
+
+            elif i in [tpr_setting.F_POSRES]:
+                parameters.append(tpr_utils.do_rvec(data))  # posres.pos0A
+                parameters.append(tpr_utils.do_rvec(data))  # posres.fcA
+                parameters.append(tpr_utils.do_rvec(data))  # posres.pos0B
+                parameters.append(tpr_utils.do_rvec(data))  # posres.fcB
+
+            elif i in [tpr_setting.F_FBPOSRES]:
+                parameters.append(data.unpack_int())   # fbposres.geom
+                parameters.append(tpr_utils.do_rvec(data))       # fbposres.pos0
+                parameters.append(data.unpack_real())  # fbposres.r
+                parameters.append(data.unpack_real())  # fbposres.k
+
+            elif i in [tpr_setting.F_CBTDIHS]:
+                parameters.append(tpr_utils.ndo_real(data, tpr_setting.NR_CBTDIHS))  # cbtdihs.cbtcA
+
+            elif i in [tpr_setting.F_RBDIHS]:
+                parameters.append(tpr_utils.ndo_real(data, tpr_setting.NR_RBDIHS))  # iparams_rbdihs_rbcA
+                parameters.append(tpr_utils.ndo_real(data, tpr_setting.NR_RBDIHS))  # iparams_rbdihs_rbcB
+
+            elif i in [tpr_setting.F_FOURDIHS]:
+                # Fourier dihedrals
+                parameters.append(tpr_utils.ndo_real(data, tpr_setting.NR_RBDIHS))  # rbdihs.rbcA
+                parameters.append(tpr_utils.ndo_real(data, tpr_setting.NR_RBDIHS))  # rbdihs.rbcB
+
+            elif i in [tpr_setting.F_CONSTR, tpr_setting.F_CONSTRNC]:
+                parameters.append(data.unpack_real())  # dA
+                parameters.append(data.unpack_real())  # dB
+
+            elif i in [tpr_setting.F_SETTLE]:
+                parameters.append(data.unpack_real())  # settle.doh
+                parameters.append(data.unpack_real())  # settle.dhh
+
+            elif i in [tpr_setting.F_VSITE1]:
+                pass
+
+            elif i in [tpr_setting.F_VSITE2, tpr_setting.F_VSITE2FD]:
+                parameters.append(data.unpack_real())  # vsite.a
+
+            elif i in [tpr_setting.F_VSITE3, tpr_setting.F_VSITE3FD, tpr_setting.F_VSITE3FAD]:
+                parameters.append(data.unpack_real())  # vsite.a
+
+            elif i in [tpr_setting.F_VSITE3OUT, tpr_setting.F_VSITE4FD, tpr_setting.F_VSITE4FDN]:
+                parameters.append(data.unpack_real())  # vsite.a
+                parameters.append(data.unpack_real())  # vsite.b
+                parameters.append(data.unpack_real())  # vsite.c
+
+            elif i in [tpr_setting.F_VSITEN]:
+                parameters.append(data.unpack_int())  # vsiten.n
+                parameters.append(data.unpack_real())  # vsiten.a
+
+            elif i in [tpr_setting.F_GB12, tpr_setting.F_GB13, tpr_setting.F_GB14]:
+                # /* We got rid of some parameters in version 68 */
+                if header.fver < 68:
+                    parameters.append(data.unpack_real())  # rdum
+                    parameters.append(data.unpack_real())  # rdum
+                    parameters.append(data.unpack_real())  # rdum
+                    parameters.append(data.unpack_real())  # rdum
+                parameters.append(data.unpack_real())  # gb.sar
+                parameters.append(data.unpack_real())  # gb.st
+                parameters.append(data.unpack_real())  # gb.pi
+                parameters.append(data.unpack_real())  # gb.gbr
+                parameters.append(data.unpack_real())  # gb.bmlt
+
+            elif i in [tpr_setting.F_CMAP]:
+                parameters.append(data.unpack_int())  # cmap.cmapA
+                parameters.append(data.unpack_int())  # cmap.cmapB
+            else:
+                raise NotImplementedError(f"unknown functype: {i}")
+            interactions.append(dict(
+                type=tpr_setting.interaction_types[i][1], parameters=parameters))
+
+        return interactions
 
     @property
     def universe(self):
