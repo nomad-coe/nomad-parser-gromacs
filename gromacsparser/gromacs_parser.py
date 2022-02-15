@@ -39,7 +39,7 @@ from nomad.datamodel.metainfo.simulation.method import (
     Method, ForceField, Model, Interaction, AtomParameters
 )
 from nomad.datamodel.metainfo.simulation.system import (
-    System, Atoms
+    System, Atoms, AtomsGroup
 )
 from nomad.datamodel.metainfo.simulation.calculation import (
     Calculation, Energy, EnergyEntry, Forces, ForcesEntry, Thermodynamics
@@ -830,6 +830,21 @@ class GromacsParser(FairdiParser):
             velocities = self.traj_parser.get_velocities(n)
             if velocities is not None:
                 sec_atoms.velocities = velocities
+
+        # parse atom groups (segments and residues)
+        # we only create atomsgroup in the initial system
+        for segment in self.traj_parser.universe.segments:
+            sec_segment = sec_run.system[0].m_create(AtomsGroup)
+            sec_segment.label = segment.segid
+            sec_segment.index = int(segment.segindex)
+            sec_segment.atom_indices = [atom.index for atom in segment.atoms]
+            for residue in segment.residues:
+                sec_residue = sec_segment.m_create(AtomsGroup)
+                sec_residue.label = residue.resname
+                sec_residue.type = residue.moltype
+                sec_residue.index = int(residue.resindex)
+                sec_residue.n_atoms = len(residue.atoms)
+                sec_residue.atom_indices = [atom.index for atom in residue.atoms]
 
     def parse_method(self):
         sec_method = self.archive.run[-1].m_create(Method)

@@ -60,6 +60,13 @@ def test_md_verbose(parser):
     assert sec_systems[1].atoms.positions[800][1].magnitude == approx(2.4609454e-09)
     assert sec_systems[0].atoms.velocities[500][0].magnitude == approx(869.4773)
     assert sec_systems[1].atoms.lattice_vectors[2][2].magnitude == approx(2.469158e-09)
+    assert len(sec_systems[0].atoms_group) == 2
+    assert len(sec_systems[0].atoms_group[1].atoms_group) == 500
+    assert sec_systems[0].atoms_group[0].label == 'seg_0_Protein'
+    assert sec_systems[0].atoms_group[0].atom_indices[13] == 13
+    assert sec_systems[0].atoms_group[1].atoms_group[400].index == 401
+    assert sec_systems[0].atoms_group[1].atoms_group[250].type == 'SOL'
+    assert sec_systems[0].atoms_group[1].atoms_group[330].atom_indices[2] == 1008
 
     sec_methods = sec_run.method
     assert len(sec_methods) == 1
