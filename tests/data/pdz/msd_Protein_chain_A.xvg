@@ -1,0 +1,69 @@
+# This file was created Tue Jan 18 10:12:09 2022
+# Created by:
+# GROMACS:      gmx msd, VERSION 5.0.8-dev-20160207-b53b2f6
+# Executable:   /sw/linux/gromacs/5.1.2/bin/gmx
+# Library dir:  /sw/linux/gromacs/5.1.2/share/gromacs/top
+# Command line:
+#   g_msd -f 2awx.trr -s 2awx.tpr -mol -o msd_Protein_chain_A.xvg
+# g_msd is part of G R O M A C S:
+#
+# Good gRace! Old Maple Actually Chews Slate
+#
+@    title "Mean Square Displacement"
+@    xaxis  label "Time (ps)"
+@    yaxis  label "MSD (nm\S2\N)"
+@TYPE xy
+# MSD gathered over 100 ps with 11 restarts
+# Diffusion constants fitted from time 10 to 90 ps
+# D[   Protein] = 0.1034 (+/- 0.0708) (1e-5 cm^2/s)
+         0           0
+         2  0.000718177
+         4   0.0016703
+         6   0.0034371
+         8   0.0056318
+        10  0.00911572
+        12   0.0125297
+        14   0.0135244
+        16   0.0170558
+        18   0.0185166
+        20    0.023158
+        22   0.0251935
+        24   0.0259818
+        26   0.0308282
+        28    0.029786
+        30   0.0326256
+        32   0.0324159
+        34    0.034463
+        36   0.0392214
+        38   0.0368613
+        40   0.0390394
+        42   0.0423284
+        44    0.040493
+        46   0.0442453
+        48   0.0410712
+        50   0.0410898
+        52    0.049001
+        54   0.0461835
+        56   0.0504364
+        58   0.0448855
+        60   0.0422628
+        62   0.0519267
+        64   0.0544514
+        66   0.0578126
+        68   0.0533862
+        70   0.0501016
+        72   0.0575824
+        74   0.0595767
+        76   0.0668346
+        78   0.0597688
+        80   0.0567233
+        82   0.0562415
+        84   0.0594881
+        86   0.0630409
+        88   0.0578797
+        90   0.0622256
+        92   0.0887861
+        94   0.0904651
+        96   0.0935563
+        98    0.092808
+       100   0.0969864

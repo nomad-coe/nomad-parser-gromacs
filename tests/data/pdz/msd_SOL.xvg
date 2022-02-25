@@ -1,0 +1,69 @@
+# This file was created Tue Jan 18 10:12:10 2022
+# Created by:
+# GROMACS:      gmx msd, VERSION 5.0.8-dev-20160207-b53b2f6
+# Executable:   /sw/linux/gromacs/5.1.2/bin/gmx
+# Library dir:  /sw/linux/gromacs/5.1.2/share/gromacs/top
+# Command line:
+#   g_msd -f 2awx.trr -s 2awx.tpr -mol -o msd_SOL.xvg
+# g_msd is part of G R O M A C S:
+#
+# Getting the Right Output Means no Artefacts in Calculating Stuff
+#
+@    title "Mean Square Displacement"
+@    xaxis  label "Time (ps)"
+@    yaxis  label "MSD (nm\S2\N)"
+@TYPE xy
+# MSD gathered over 100 ps with 11 restarts
+# Diffusion constants fitted from time 10 to 90 ps
+# D[       SOL] = 5.6148 (+/- 0.0000) (1e-5 cm^2/s)
+         0           0
+         2   0.0688769
+         4    0.135904
+         6    0.203573
+         8    0.271162
+        10    0.339284
+        12    0.410115
+        14    0.477376
+        16    0.545184
+        18     0.61283
+        20    0.679723
+        22    0.751072
+        24    0.816766
+        26    0.885703
+        28     0.95111
+        30     1.01722
+        32      1.0888
+        34      1.1549
+        36       1.222
+        38     1.28639
+        40     1.35114
+        42     1.42338
+        44     1.49085
+        46      1.5603
+        48     1.62358
+        50     1.68862
+        52     1.76049
+        54     1.82513
+        56     1.89628
+        58     1.95974
+        60      2.0246
+        62     2.09759
+        64      2.1627
+        66     2.23495
+        68      2.3008
+        70     2.36167
+        72     2.43161
+        74     2.50115
+        76     2.57369
+        78     2.63686
+        80     2.69124
+        82       2.775
+        84     2.83646
+        86     2.91232
+        88     2.97334
+        90     3.02646
+        92     3.12463
+        94     3.17745
+        96     3.26148
+        98     3.32268
+       100     3.38187

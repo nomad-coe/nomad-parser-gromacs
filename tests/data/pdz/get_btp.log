@@ -1,0 +1,12 @@
+Found .btp file extension in output file. Assuming you're translating a dumped tpr file.
+WARNING: nonzero number of interactions of type Constraint: found
+These types of interactions do not correspond to BondStretch, Angle, Dihedral, nor IntraMolec_NB_Pair types
+Accordingly, they will not be used nor transferred to the .btp file
+WARNING: nonzero number of interactions of type Settle: found
+These types of interactions do not correspond to BondStretch, Angle, Dihedral, nor IntraMolec_NB_Pair types
+Accordingly, they will not be used nor transferred to the .btp file
+  flag    type                 value  description
+    -f  string       2awx.dumped.txt  input filename (req.)
+    -o  string              2awx.btp  output filename (req.)
+    -s  string           Unspecified  ref. topology filename
+    -h    bool                 False  Display this table and quit
