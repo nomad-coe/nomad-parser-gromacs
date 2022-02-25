@@ -1,0 +1,46 @@
+;
+;	File 'topol_10.top' was generated
+;	By user: unknown (1000)
+;	On host: daniel-ThinkPad-T14-Gen-1
+;	At date: Tue Apr 13 12:25:47 2021
+;
+;	This is a standalone topology file
+;
+;	Created by:
+;	                    :-) GROMACS - gmx pdb2gmx, 2019.3 (-:
+;	
+;	Executable:   /usr/local/bin/gmx
+;	Data prefix:  /usr/local
+;	Working dir:  /home/daniel/Proyects/fsfg/umbrella_sampling/AA_umbrella_from_scratch/conf10
+;	Command line:
+;	  gmx pdb2gmx -f aa10.pdb -o aa_10.gro -i posre_10.itp -ter yes -ignh -p topol_10.top
+;	Force field was read from the standard GROMACS share directory.
+;
+
+; Include forcefield parameters
+#include "a99SBdisp.ff/forcefield.itp"
+
+; Include chain topologies
+#include "topol_10_Protein.itp"
+
+; Include water topology
+#include "a99SBdisp.ff/a99SBdisp_water.itp"
+
+#ifdef POSRES_WATER
+; Position restraint for each water oxygen
+[ position_restraints ]
+;  i funct       fcx        fcy        fcz
+   1    1       1000       1000       1000
+#endif
+
+; Include topology for ions
+#include "a99SBdisp.ff/ions.itp"
+
+[ system ]
+; Name
+Protein in water
+
+[ molecules ]
+; Compound        #mols
+Protein             1
+SOL             11246
