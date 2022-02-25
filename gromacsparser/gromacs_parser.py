@@ -879,8 +879,13 @@ class GromacsParser(FairdiParser):
             sec_residue.index = i_res
             sec_residue.atom_indices = np.where(universe.atoms.resids == res_id)[0]
             sec_residue.n_atoms = len(sec_residue.atom_indices)
+<<<<<<< HEAD
             res_names = universe.atoms.resnames[sec_residue.atom_indices]
             sec_residue.label = res_names[0]
+=======
+            child_names = universe.atoms.resnames[sec_residue.atom_indices]
+            sec_residue.label = child_names[0]
+>>>>>>> e391cf0ece50e384c88cc9e4441cf54b42b21a48
             sec_residue.type = 'monomer'
             sec_residue.is_molecule = False
             elements = universe.atoms.elements[sec_residue.atom_indices]
